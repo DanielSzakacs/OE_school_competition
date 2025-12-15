@@ -1,0 +1,10 @@
+{
+  "name": "OE_school_competition",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start"
+  }
+}
