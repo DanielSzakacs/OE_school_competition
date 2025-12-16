@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  seat   Int    @id
+  name   String
+  score  Int    @default(0)
+
+  attempts Attempt[]
+}
+
+model Question {
+  id            Int     @id @default(autoincrement())
+  category      String
+  point         Int
+  question      String
+  answerA       String
+  answerB       String
+  answerC       String
+  answerD       String
+  correctAnswer String
+  image         String?  // URL vagy üres
+  isVisible     Boolean  @default(true)
+
+  attempts Attempt[]
+}
+
+model Attempt {
+  id         Int      @id @default(autoincrement())
+  questionId Int
+  playerSeat Int
+  isCorrect  Boolean
+  answeredAt DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id])
+  player   Player   @relation(fields: [playerSeat], references: [seat])
+
+  @@index([questionId])
+  @@index([playerSeat])
+}
