@@ -13,4 +13,6 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
-useGameStore.bind()
+
+const game = useGameStore()
+game.bind()
