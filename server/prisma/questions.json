@@ -1,0 +1,14 @@
+[
+  {
+    "category": "Történelem",
+    "point": 100,
+    "question": "Melyik évben volt a mohácsi csata?",
+    "answerA": "1241",
+    "answerB": "1526",
+    "answerC": "1848",
+    "answerD": "1914",
+    "correctAnswer": "B",
+    "image": null,
+    "isVisible": true
+  }
+]
