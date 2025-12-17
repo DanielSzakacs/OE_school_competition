@@ -14,6 +14,9 @@
 
 import "dotenv/config";
 
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -22,6 +25,7 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({ adapter });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   // 1) Players (seat 1..5 fixen)
@@ -33,56 +37,20 @@ async function main() {
     { seat: 5, name: "5" },
   ];
 
-  for (const p of players) {
-    await prisma.player.upsert({
-      where: { seat: p.seat },
-      update: { name: p.name },
-      create: { seat: p.seat, name: p.name, score: 0 },
-    });
-  }
-
   // 2) Questions (példa pár darab)
-  const sampleQuestions = [
-    {
-      category: "Történelem",
-      point: 100,
-      question: "Melyik évben volt a mohácsi csata?",
-      answerA: "1241",
-      answerB: "1526",
-      answerC: "1848",
-      answerD: "1914",
-      correctAnswer: "B",
-      image: null,
-      isVisible: true,
-    },
-    {
-      category: "Földrajz",
-      point: 100,
-      question: "Mi Magyarország fővárosa?",
-      answerA: "Budapest",
-      answerB: "Debrecen",
-      answerC: "Szeged",
-      answerD: "Pécs",
-      correctAnswer: "A",
-      image: null,
-      isVisible: true,
-    },
-    {
-      category: "Informatika",
-      point: 200,
-      question: "Mit jelent a HTTP rövidítés?",
-      answerA: "High Transfer Text Protocol",
-      answerB: "HyperText Transfer Protocol",
-      answerC: "Host Transfer Tool Protocol",
-      answerD: "Hyper Terminal Trace Protocol",
-      correctAnswer: "B",
-      image: null,
-      isVisible: true,
-    },
-  ];
+  const questionsPath = path.join(__dirname, "questions.json");
+  const sampleQuestions = JSON.parse(
+    await fs.readFile(questionsPath, { encoding: "utf-8" })
+  );
 
-  // egyszerű: csak beszúrjuk (MVP)
-  // ha sokszor futtatod, duplikálódhat – később okosítjuk
+  // töröljük az összes adatot, hogy elkerüljük a duplikációt
+  await prisma.$transaction([
+    prisma.attempt.deleteMany(),
+    prisma.question.deleteMany(),
+    prisma.player.deleteMany(),
+  ]);
+
+  await prisma.player.createMany({ data: players });
   await prisma.question.createMany({ data: sampleQuestions });
 
   console.log("Seed kész ✅");
