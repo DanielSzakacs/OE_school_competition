@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import { prisma } from "./prismaClient.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -12,91 +13,151 @@ const io = new Server(server, {
   },
 });
 
-// Szobánként tároljuk az állapotot (MVP-hez elég memóriában)
-const rooms = new Map();
+const ROOM_CODE = "ROOM1";
 
-function getRoom(roomCode) {
-  if (!rooms.has(roomCode)) {
-    rooms.set(roomCode, {
-      roomCode,
-      buzzOpen: false,
-      buzzWinnerSeat: null, // 1..5
-      players: {
-        1: { seat: 1, name: "Játékos 1", score: 0 },
-        2: { seat: 2, name: "Játékos 2", score: 0 },
-        3: { seat: 3, name: "Játékos 3", score: 0 },
-        4: { seat: 4, name: "Játékos 4", score: 0 },
-        5: { seat: 5, name: "Játékos 5", score: 0 },
+const runtime = {
+  activeQuestionId: null,
+  buzzOpen: false,
+  buzzWinnerSeat: null,
+  hostSocketId: null,
+};
+
+async function buildPublicState() {
+  const [players, questions] = await Promise.all([
+    prisma.player.findMany({
+      orderBy: { seat: "asc" },
+    }),
+    prisma.question.findMany({
+      where: { isVisible: true },
+      select: {
+        id: true,
+        category: true,
+        point: true,
       },
+      orderBy: [
+        { category: "asc" },
+        { point: "asc" },
+      ],
+    }),
+  ]);
+
+  let activeQuestion = null;
+  if (runtime.activeQuestionId) {
+    const fullQuestion = await prisma.question.findUnique({
+      where: { id: runtime.activeQuestionId },
     });
+    if (fullQuestion) {
+      const { correctAnswer, ...publicQuestion } = fullQuestion;
+      activeQuestion = publicQuestion;
+    }
   }
-  return rooms.get(roomCode);
+
+  return {
+    players,
+    questions,
+    runtime: {
+      activeQuestionId: runtime.activeQuestionId,
+      buzzOpen: runtime.buzzOpen,
+      buzzWinnerSeat: runtime.buzzWinnerSeat,
+    },
+    activeQuestion,
+  };
 }
 
-function emitState(roomCode) {
-  const state = getRoom(roomCode);
-  io.to(roomCode).emit("state:update", state);
+async function emitState(ioInstance) {
+  const state = await buildPublicState();
+  ioInstance.to(ROOM_CODE).emit("state:update", state);
+
+  if (runtime.hostSocketId) {
+    if (runtime.activeQuestionId) {
+      const fullQuestion = await prisma.question.findUnique({
+        where: { id: runtime.activeQuestionId },
+      });
+      ioInstance.to(runtime.hostSocketId).emit("host:activeQuestion", fullQuestion);
+    } else {
+      ioInstance.to(runtime.hostSocketId).emit("host:activeQuestion", null);
+    }
+  }
 }
 
 io.on("connection", (socket) => {
-  // kliens elküldi: { roomCode, role, seat? }
-  socket.on("room:join", ({ roomCode, role, seat }) => {
-    socket.data.roomCode = roomCode;
+  socket.on("room:join", async ({ role, seat }) => {
     socket.data.role = role;
     socket.data.seat = seat;
 
-    socket.join(roomCode);
-    emitState(roomCode);
+    socket.join(ROOM_CODE);
+
+    if (role === "host") {
+      runtime.hostSocketId = socket.id;
+    }
+
+    await emitState(io);
   });
 
-  // Host megnyitja a buzzert
-  socket.on("buzz:open", () => {
-    const roomCode = socket.data.roomCode;
-    if (!roomCode) return;
-    const state = getRoom(roomCode);
+  socket.on("question:select", async ({ questionId }) => {
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+    });
+    if (!question || !question.isVisible) return;
 
-    state.buzzOpen = true;
-    state.buzzWinnerSeat = null;
+    runtime.activeQuestionId = questionId;
+    runtime.buzzOpen = true;
+    runtime.buzzWinnerSeat = null;
 
-    emitState(roomCode);
+    await emitState(io);
   });
 
-  // Host reseteli (lezárja) a buzzert
-  socket.on("buzz:close", () => {
-    const roomCode = socket.data.roomCode;
-    if (!roomCode) return;
-    const state = getRoom(roomCode);
+  socket.on("buzz:hit", async ({ seat }) => {
+    if (!runtime.activeQuestionId) return;
+    if (!runtime.buzzOpen) return;
+    if (runtime.buzzWinnerSeat !== null) return;
 
-    state.buzzOpen = false;
-    emitState(roomCode);
+    runtime.buzzWinnerSeat = seat;
+    runtime.buzzOpen = false;
+
+    await emitState(io);
   });
 
-  // Player nyomja a buzzert: { seat }
-  socket.on("buzz:hit", ({ seat }) => {
-    const roomCode = socket.data.roomCode;
-    if (!roomCode) return;
-    const state = getRoom(roomCode);
+  socket.on("answer:resolve", async ({ isCorrect }) => {
+    if (!runtime.activeQuestionId) return;
+    if (runtime.buzzWinnerSeat == null) return;
 
-    if (!state.buzzOpen) return;
-    if (state.buzzWinnerSeat !== null) return;
+    const question = await prisma.question.findUnique({
+      where: { id: runtime.activeQuestionId },
+    });
+    if (!question) return;
 
-    state.buzzWinnerSeat = seat;
-    state.buzzOpen = false;
+    await prisma.attempt.create({
+      data: {
+        questionId: question.id,
+        playerSeat: runtime.buzzWinnerSeat,
+        isCorrect: !!isCorrect,
+      },
+    });
 
-    emitState(roomCode);
+    if (isCorrect) {
+      await prisma.player.update({
+        where: { seat: runtime.buzzWinnerSeat },
+        data: { score: { increment: question.point } },
+      });
+    }
+
+    await prisma.question.update({
+      where: { id: question.id },
+      data: { isVisible: false },
+    });
+
+    runtime.activeQuestionId = null;
+    runtime.buzzOpen = false;
+    runtime.buzzWinnerSeat = null;
+
+    await emitState(io);
   });
 
-  // Host pontot ad a nyertesnek: { delta }
-  socket.on("score:awardToWinner", ({ delta }) => {
-    const roomCode = socket.data.roomCode;
-    if (!roomCode) return;
-    const state = getRoom(roomCode);
-
-    const seat = state.buzzWinnerSeat;
-    if (!seat) return;
-
-    state.players[seat].score += delta;
-    emitState(roomCode);
+  socket.on("disconnect", () => {
+    if (runtime.hostSocketId === socket.id) {
+      runtime.hostSocketId = null;
+    }
   });
 });
 

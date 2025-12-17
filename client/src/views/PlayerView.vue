@@ -39,26 +39,32 @@ onMounted(() => {
 
 const canBuzz = computed(() => {
   const s = game.state
-  if (!seatValid.value || !s) return false
-  if (!s.buzzOpen) return false
-  // ha már van nyertes, senki ne buzzoljon
-  if (s.buzzWinnerSeat != null) return false
+  const rt = s?.runtime
+  if (!seatValid.value || !s || !rt) return false
+
+  const hasActiveQuestion = !!rt.activeQuestionId || !!s.activeQuestion
+  if (!hasActiveQuestion) return false
+  if (!rt.buzzOpen) return false
+  if (rt.buzzWinnerSeat != null) return false
   return true
 })
 
 const infoText = computed(() => {
   const s = game.state
-  if (!s) return 'Várakozás a state-re...'
-  if (s.buzzOpen) return 'A buzzer NYITVA! Nyomd meg!'
-  if (s.buzzWinnerSeat == null) return 'A buzzer zárva.'
-  if (s.buzzWinnerSeat === seat.value) return 'Te nyerted a buzzert!'
+  const rt = s?.runtime
+  if (!s || !rt) return 'Várakozás a state-re...'
+  if (!rt.activeQuestionId && !s.activeQuestion) return 'Nincs aktív kérdés.'
+  if (rt.buzzOpen) return 'A buzzer NYITVA! Nyomd meg!'
+  if (rt.buzzWinnerSeat == null) return 'A buzzer zárva.'
+  if (rt.buzzWinnerSeat === seat.value) return 'Te nyerted a buzzert!'
   return 'Valaki más nyerte a buzzert.'
 })
 
 const myScore = computed(() => {
   const s = game.state
   if (!s || !seatValid.value) return 0
-  return s.players?.[seat.value]?.score ?? 0
+
+  return s.players?.find((p) => p.seat === seat.value)?.score ?? 0
 })
 
 const hit = () => {
