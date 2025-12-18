@@ -2,7 +2,7 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { useGameStore } from './stores/game.js'
+import { useGameStore } from './stores/game'
 
 import App from './App.vue'
 import router from './router'
