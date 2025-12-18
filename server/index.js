@@ -1,16 +1,19 @@
 import express from "express";
 import http from "http";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import { prisma } from "./prismaClient.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: true, methods: ["GET", "POST"] },
 });
 
 const ROOM_CODE = "ROOM1";
@@ -162,6 +165,21 @@ io.on("connection", (socket) => {
 });
 
 app.get("/health", (req, res) => res.json({ ok: true }));
+
+const clientDistPath = path.resolve(__dirname, "../client/dist");
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback: Vue Router route-okhoz is index.html kell
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+
+  console.log("Serving client from:", clientDistPath);
+} else {
+  console.log("client/dist not found, skipping static serving:", clientDistPath);
+}
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
