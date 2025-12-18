@@ -1,14 +1,19 @@
 import express from "express";
 import http from "http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Server } from "socket.io";
 import { prisma } from "./prismaClient.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: process.env.NODE_ENV === "production" ? true : ["http://localhost:5173"],
     methods: ["GET", "POST"],
   },
 });
@@ -162,6 +167,15 @@ io.on("connection", (socket) => {
 });
 
 app.get("/health", (req, res) => res.json({ ok: true }));
+
+if (process.env.NODE_ENV === "production") {
+  const clientDistPath = path.resolve(__dirname, "../client/dist");
+  app.use(express.static(clientDistPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
