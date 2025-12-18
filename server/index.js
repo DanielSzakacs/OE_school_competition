@@ -175,7 +175,10 @@ if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
 
   // SPA fallback: Vue Router route-okhoz is index.html kell
-  app.get("*", (req, res) => {
+  //   app.get("*", (req, res) => {
+  //     res.sendFile(path.join(clientDistPath, "index.html"));
+  //   });
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 
