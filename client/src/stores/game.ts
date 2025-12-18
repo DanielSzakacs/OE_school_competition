@@ -1,37 +1,52 @@
 import { defineStore } from 'pinia'
+
 import { socket } from '../socket'
+import type {
+  ActiveQuestion,
+  ClientRole,
+  GameState,
+  Player,
+  QuestionSummary,
+} from '../types/game'
+
+interface GameStoreState {
+  roomCode: string
+  state: GameState | null
+  hostQuestion: ActiveQuestion | null
+  bound: boolean
+}
 
 export const useGameStore = defineStore('game', {
-  state: () => ({
+  state: (): GameStoreState => ({
     roomCode: 'ROOM1',
     state: null,
     hostQuestion: null,
     bound: false,
   }),
   actions: {
-    join(role, seat) {
+    join(role: ClientRole, seat?: Player['seat']) {
       socket.emit('room:join', { role, seat })
     },
     bind() {
       if (this.bound) return
 
-      socket.on('state:update', (s) => {
+      socket.on('state:update', (s: GameState) => {
         this.state = s
       })
 
-      socket.on('host:activeQuestion', (q) => {
+      socket.on('host:activeQuestion', (q: ActiveQuestion | null) => {
         this.hostQuestion = q
       })
 
       this.bound = true
     },
-    selectQuestion(questionId) {
+    selectQuestion(questionId: QuestionSummary['id']) {
       socket.emit('question:select', { questionId })
     },
-    hitBuzz(seat) {
+    hitBuzz(seat: Player['seat']) {
       socket.emit('buzz:hit', { seat })
     },
-    resolveAnswer(isCorrect) {
+    resolveAnswer(isCorrect: boolean) {
       socket.emit('answer:resolve', { isCorrect })
     },
   },
