@@ -112,7 +112,9 @@ npm run dev
 ```
 ### URL-ek
 Host: `http://localhost:5173/host`
+
 Screen: `http://localhost:5173/screen`
+
 Player: `http://localhost:5173/player/1` … `http://localhost:5173/player/5`
 ### Reset
 ```
