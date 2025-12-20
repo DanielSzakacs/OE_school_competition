@@ -3,6 +3,8 @@
     <div v-if="activeQuestion" class="screen-center active-question">
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
+      <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
+
 
       <ul class="active-question__answers">
         <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
@@ -40,6 +42,17 @@ onMounted(() => {
 })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
+const playersList = computed(() => {
+  return (game.state?.players ?? []).slice().sort((a, b) => a.seat - b.seat)
+})
+
+const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
+
+const winnerName = computed(() => {
+  const seat = winnerSeat.value
+  if (seat == null) return null
+  return playersList.value.find((p) => p.seat === seat)?.name ?? `Seat ${seat}`
+})
 
 const groupedQuestions = computed(() => {
   const groups = {}
@@ -121,6 +134,12 @@ const groupedQuestions = computed(() => {
 .active-question__text {
   font-size: clamp(1rem, 2vw, 1.4rem);
   max-width: 900px;
+}
+
+.active-question__answerer {
+  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  font-weight: 600;
+  color: rgba(248, 251, 255, 0.9);
 }
 
 .active-question__answers {
