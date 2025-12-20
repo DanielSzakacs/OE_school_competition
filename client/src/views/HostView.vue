@@ -7,10 +7,10 @@
       <p style="font-size: 20px">{{ activeQuestion.question }}</p>
 
       <ul style="list-style: none; padding: 0; font-size: 18px">
-        <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-        <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-        <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-        <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+        <li v-if="activeQuestion.answerA"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+        <li v-if="activeQuestion.answerB"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+        <li v-if="activeQuestion.answerC"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+        <li v-if="activeQuestion.answerD"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
       </ul>
 
       <p style="margin-top: 8px">
@@ -111,6 +111,10 @@ const resolve = (isCorrect) => {
 
 const resetGame = () => {
   game.resetGame()
+}
+
+const seedGame = () => {
+  game.seedGame()
 }
 
 const playersList = computed(() => {
