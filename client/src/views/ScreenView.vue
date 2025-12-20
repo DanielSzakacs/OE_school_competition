@@ -5,6 +5,7 @@
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
 
+
       <ul class="active-question__answers">
         <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
         <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
