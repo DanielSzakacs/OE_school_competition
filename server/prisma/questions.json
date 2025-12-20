@@ -2,13 +2,13 @@
   {
     "category": "Tortenelem",
     "point": 100,
-    "question": "Melyik évben volt a mohácsi csata?",
-    "answerA": "1241",
-    "answerB": "1526",
-    "answerC": "1848",
-    "answerD": "1914",
+    "question": "Melyik hely lathato a kepen?",
+    "answerA": "",
+    "answerB": "",
+    "answerC": "",
+    "answerD": "",
     "correctAnswer": "B",
-    "image": null,
+    "image": "https://content.icelandtravel.is///wp-content/uploads/2019/03/Kirkjufell-mountain.jpg",
     "isVisible": true
   },
   {
