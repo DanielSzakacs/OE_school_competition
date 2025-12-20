@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 16px">
+  <div class="host-view">
     <h1>HOST</h1>
 
     <div v-if="activeQuestion" style="margin: 12px 0">
@@ -23,13 +23,16 @@
 
       <div style="margin-top: 12px">
         <button
+          class="host-button"
           :disabled="!hasBuzzWinner"
           @click="resolve(true)"
           style="margin-right: 8px"
         >
           Helyes
         </button>
-        <button :disabled="!hasBuzzWinner" @click="resolve(false)">Helytelen</button>
+        <button class="host-button" :disabled="!hasBuzzWinner" @click="resolve(false)">
+          Helytelen
+        </button>
       </div>
     </div>
 
@@ -41,6 +44,7 @@
           <button
             v-for="question in questions"
             :key="question.id"
+            class="host-button host-button--question"
             style="display: block; width: 100%; padding: 12px; margin-bottom: 8px"
             :disabled="!!activeQuestion"
             @click="select(question.id)"
@@ -64,7 +68,9 @@
 
     <div style="margin-top: 16px">
       <h3>Admin</h3>
-      <button @click="resetGame">Pontok nullázása és kérdések visszaállítása</button>
+      <button class="host-button host-button--secondary" @click="resetGame">
+        Pontok nullázása és kérdések visszaállítása
+      </button>
     </div>
   </div>
 </template>
@@ -130,3 +136,54 @@ const buzzStatus = computed(() => {
 
 const hasBuzzWinner = computed(() => winnerSeat.value != null)
 </script>
+
+<style scoped>
+.host-view {
+  padding: 16px;
+  color: #f5f7ff;
+}
+
+.host-view h1,
+.host-view h2,
+.host-view h3 {
+  color: #f8fbff;
+}
+
+.host-view hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.host-button {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(30, 48, 90, 0.9);
+  color: #f8fbff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border 0.2s ease;
+}
+
+.host-button:hover:not(:disabled) {
+  background: rgba(46, 72, 128, 0.95);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.host-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.host-button--question {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.host-button--secondary {
+  margin-top: 8px;
+  background: rgba(22, 32, 57, 0.9);
+}
+</style>
