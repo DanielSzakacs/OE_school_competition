@@ -160,6 +160,24 @@ io.on("connection", (socket) => {
     await emitState(io);
   });
 
+  socket.on("game:reset", async () => {
+    if (socket.data.role !== "host") return;
+
+    await prisma.player.updateMany({
+      data: { score: 0 },
+    });
+
+    await prisma.question.updateMany({
+      data: { isVisible: true },
+    });
+
+    runtime.activeQuestionId = null;
+    runtime.buzzOpen = false;
+    runtime.buzzWinnerSeat = null;
+
+    await emitState(io);
+  });
+
   socket.on("disconnect", () => {
     if (runtime.hostSocketId === socket.id) {
       runtime.hostSocketId = null;

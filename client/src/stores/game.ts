@@ -49,5 +49,8 @@ export const useGameStore = defineStore('game', {
     resolveAnswer(isCorrect: boolean) {
       socket.emit('answer:resolve', { isCorrect })
     },
+    resetGame() {
+      socket.emit('game:reset')
+    },
   },
 })
