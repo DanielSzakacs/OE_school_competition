@@ -40,6 +40,8 @@ export interface ClientToServerEvents {
   'question:select': (payload: { questionId: number }) => void
   'buzz:hit': (payload: { seat: number }) => void
   'answer:resolve': (payload: { isCorrect: boolean }) => void
+  'game:reset': () => void
+  'game:seed': () => void
 }
 
 export interface ServerToClientEvents {
