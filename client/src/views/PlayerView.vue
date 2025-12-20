@@ -12,6 +12,16 @@
             <span class="player-question__points">{{ activeQuestion.point }}</span>
           </div>
           <div class="player-question__text">{{ activeQuestion.question }}</div>
+          <ul class="player-question__answers">
+            <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+            <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+            <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+            <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+          </ul>
+          <div v-if="activeQuestion.image" class="player-question__image">
+            <img :src="activeQuestion.image" alt="Kérdés kép" />
+          </div>
+
         </template>
         <template v-else-if="winnerName">
           <div class="player-question__answerer">A valaszolo: {{ winnerName }}</div>
