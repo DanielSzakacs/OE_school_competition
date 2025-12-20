@@ -13,14 +13,15 @@
           </div>
           <div class="player-question__text">{{ activeQuestion.question }}</div>
           <ul class="player-question__answers">
-            <li v-if="activeQuestion.answerA"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-            <li v-if="activeQuestion.answerB"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-            <li v-if="activeQuestion.answerC"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-            <li v-if="activeQuestion.answerD"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+            <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+            <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+            <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+            <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
           </ul>
           <div v-if="activeQuestion.image" class="player-question__image">
             <img :src="activeQuestion.image" alt="Kérdés kép" />
           </div>
+
         </template>
         <template v-else-if="winnerName">
           <div class="player-question__answerer">A valaszolo: {{ winnerName }}</div>
@@ -146,30 +147,6 @@ const hit = () => {
   border-radius: 12px;
   font-weight: 600;
   font-size: clamp(1rem, 2vw, 1.4rem);
-}
-
-.player-question__answers {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 8px;
-  color: #f5f7ff;
-  font-size: clamp(0.95rem, 2vw, 1.2rem);
-}
-
-.player-question__image {
-  display: flex;
-  justify-content: center;
-}
-
-.player-question__image img {
-  width: 100%;
-  max-width: 420px;
-  max-height: 240px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .player-question__answerer,

@@ -5,11 +5,12 @@
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
 
+
       <ul class="active-question__answers">
-        <li v-if="activeQuestion.answerA"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-        <li v-if="activeQuestion.answerB"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-        <li v-if="activeQuestion.answerC"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-        <li v-if="activeQuestion.answerD"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+        <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+        <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+        <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+        <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
       </ul>
 
       <div v-if="activeQuestion.image" class="active-question__image">

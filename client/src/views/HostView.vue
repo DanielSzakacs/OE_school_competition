@@ -71,9 +71,6 @@
       <button class="host-button host-button--secondary" @click="resetGame">
         Pontok nullázása és kérdések visszaállítása
       </button>
-      <button class="host-button host-button--secondary" @click="seedGame">
-        Seed futtatása
-      </button>
     </div>
   </div>
 </template>
