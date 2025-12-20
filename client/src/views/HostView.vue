@@ -22,8 +22,14 @@
       </div>
 
       <div style="margin-top: 12px">
-        <button @click="resolve(true)" style="margin-right: 8px">Helyes</button>
-        <button @click="resolve(false)">Helytelen</button>
+        <button
+          :disabled="!hasBuzzWinner"
+          @click="resolve(true)"
+          style="margin-right: 8px"
+        >
+          Helyes
+        </button>
+        <button :disabled="!hasBuzzWinner" @click="resolve(false)">Helytelen</button>
       </div>
     </div>
 
@@ -55,6 +61,11 @@
     <ul>
       <li v-for="p in playersList" :key="p.seat">{{ p.name }} — {{ p.score }}</li>
     </ul>
+
+    <div style="margin-top: 16px">
+      <h3>Admin</h3>
+      <button @click="resetGame">Pontok nullázása és kérdések visszaállítása</button>
+    </div>
   </div>
 </template>
 
@@ -92,6 +103,10 @@ const resolve = (isCorrect) => {
   game.resolveAnswer(isCorrect)
 }
 
+const resetGame = () => {
+  game.resetGame()
+}
+
 const playersList = computed(() => {
   return (game.state?.players ?? []).slice().sort((a, b) => a.seat - b.seat)
 })
@@ -112,4 +127,6 @@ const buzzStatus = computed(() => {
   if (rt.activeQuestionId) return 'CLOSED (aktív kérdés)'
   return 'CLOSED'
 })
+
+const hasBuzzWinner = computed(() => winnerSeat.value != null)
 </script>
