@@ -3,6 +3,8 @@ import http from "http";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { exec as execCallback } from "child_process";
+import { promisify } from "util";
 import { Server } from "socket.io";
 import { prisma } from "./prismaClient.js";
 
@@ -21,6 +23,7 @@ const io = new Server(server, {
 });
 
 const ROOM_CODE = "ROOM1";
+const exec = promisify(execCallback);
 
 const runtime = {
   activeQuestionId: null,
@@ -170,6 +173,24 @@ io.on("connection", (socket) => {
     await prisma.question.updateMany({
       data: { isVisible: true },
     });
+
+    runtime.activeQuestionId = null;
+    runtime.buzzOpen = false;
+    runtime.buzzWinnerSeat = null;
+
+    await emitState(io);
+  });
+
+  socket.on("game:seed", async () => {
+    if (socket.data.role !== "host") return;
+
+    const seedPath = path.resolve(__dirname, "prisma", "seed.js");
+
+    try {
+      await exec(`node "${seedPath}"`, { cwd: __dirname });
+    } catch (error) {
+      console.error("Seed failed:", error);
+    }
 
     runtime.activeQuestionId = null;
     runtime.buzzOpen = false;

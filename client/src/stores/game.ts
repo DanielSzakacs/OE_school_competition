@@ -52,5 +52,8 @@ export const useGameStore = defineStore('game', {
     resetGame() {
       socket.emit('game:reset')
     },
+    seedGame() {
+      socket.emit('game:seed')
+    },
   },
 })
