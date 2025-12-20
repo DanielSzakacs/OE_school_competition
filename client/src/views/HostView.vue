@@ -39,7 +39,11 @@
     <div v-else>
       <h2>Kérdések táblája</h2>
       <div style="display: flex; gap: 16px">
-        <div v-for="(questions, category) in groupedQuestions" :key="category" style="min-width: 120px">
+        <div
+          v-for="(questions, category) in groupedQuestions"
+          :key="category"
+          style="min-width: 120px"
+        >
           <h3>{{ category }}</h3>
           <button
             v-for="question in questions"
@@ -71,6 +75,7 @@
       <button class="host-button host-button--secondary" @click="resetGame">
         Pontok nullázása és kérdések visszaállítása
       </button>
+      <button class="host-button host-button--secondary" @click="seedGame">Seed futtatása</button>
     </div>
   </div>
 </template>
@@ -166,7 +171,10 @@ const hasBuzzWinner = computed(() => winnerSeat.value != null)
   padding: 10px 18px;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, border 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border 0.2s ease;
 }
 
 .host-button:hover:not(:disabled) {
