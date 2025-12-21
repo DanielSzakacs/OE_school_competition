@@ -1,7 +1,9 @@
 <template>
   <div class="screen-view">
-    <div v-if="activeQuestion" class="screen-center active-question">
+    <teleport to="#app-header">
       <div v-if="timerSeconds != null" class="screen-timer">{{ timerSeconds }}</div>
+    </teleport>
+    <div v-if="activeQuestion" class="screen-center active-question">
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
@@ -171,9 +173,6 @@ const groupedQuestions = computed(() => {
 }
 
 .screen-timer {
-  position: absolute;
-  top: 16px;
-  right: 24px;
   font-size: clamp(1.4rem, 3vw, 2.4rem);
   font-weight: 700;
   background: linear-gradient(to right, #eba313 0%, #eba313 100%);
@@ -213,11 +212,6 @@ const groupedQuestions = computed(() => {
 @media (max-width: 640px) {
   .screen-view {
     padding: 16px;
-  }
-
-  .screen-timer {
-    top: 12px;
-    right: 16px;
   }
 
   .question-board {
