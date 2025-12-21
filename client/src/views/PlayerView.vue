@@ -85,6 +85,7 @@ const canBuzz = computed(() => {
   if (!hasActiveQuestion) return false
   if (!rt.buzzOpen) return false
   if (rt.buzzWinnerSeat != null) return false
+  if (rt.disabledBuzzSeats?.includes(seat.value)) return false
   return true
 })
 
@@ -181,7 +182,7 @@ const hit = () => {
 }
 
 .buzz-button--active {
-  background: #ff1e1e;
+  background: linear-gradient(to right, #78ae66 0%, #e498e3 100%);
   box-shadow: 0 0 20px rgba(255, 30, 30, 0.6);
 }
 

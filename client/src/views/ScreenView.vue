@@ -1,6 +1,7 @@
 <template>
   <div class="screen-view">
     <div v-if="activeQuestion" class="screen-center active-question">
+      <div v-if="timerSeconds != null" class="screen-timer">{{ timerSeconds }}</div>
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
@@ -22,7 +23,12 @@
       <div class="question-board">
         <div class="question-board__column" v-for="(questions, category) in groupedQuestions" :key="category">
           <h3 class="question-board__category">{{ category }}</h3>
-          <div v-for="question in questions" :key="question.id" class="question-board__point">
+          <div
+            v-for="question in questions"
+            :key="question.id"
+            class="question-board__point"
+            :class="{ 'question-board__point--disabled': !question.isVisible }"
+          >
             {{ question.point }}
           </div>
         </div>
@@ -32,13 +38,24 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useGameStore } from '@/stores/game'
 
 const game = useGameStore()
+const nowMs = ref(Date.now())
+let timerIntervalId
 
 onMounted(() => {
   game.join('screen')
+  timerIntervalId = window.setInterval(() => {
+    nowMs.value = Date.now()
+  }, 200)
+})
+
+onUnmounted(() => {
+  if (timerIntervalId) {
+    window.clearInterval(timerIntervalId)
+  }
 })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
@@ -52,6 +69,25 @@ const winnerName = computed(() => {
   const seat = winnerSeat.value
   if (seat == null) return null
   return playersList.value.find((p) => p.seat === seat)?.name ?? `Seat ${seat}`
+})
+
+const timerRemainingMs = computed(() => {
+  const rt = game.state?.runtime
+  if (!rt) return null
+  if (rt.timerEndsAt != null) {
+    return Math.max(0, rt.timerEndsAt - nowMs.value)
+  }
+  if (rt.timerRemainingMs != null) {
+    return rt.timerRemainingMs
+  }
+  return null
+})
+
+const timerSeconds = computed(() => {
+  if (!activeQuestion.value) return null
+  const remaining = timerRemainingMs.value
+  if (remaining == null) return null
+  return Math.ceil(remaining / 1000)
 })
 
 const groupedQuestions = computed(() => {
@@ -78,6 +114,7 @@ const groupedQuestions = computed(() => {
   justify-content: center;
   padding: 24px;
   color: #f5f7ff;
+  position: relative;
 }
 
 .screen-center {
@@ -120,11 +157,28 @@ const groupedQuestions = computed(() => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+.question-board__point--disabled {
+  background: rgba(148, 156, 170, 0.65);
+  color: rgba(240, 243, 248, 0.7);
+  box-shadow: none;
+}
+
 .active-question {
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 16px;
+}
+
+.screen-timer {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-weight: 700;
+  background: linear-gradient(to right, #eba313 0%, #eba313 100%);
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .active-title {
@@ -159,6 +213,11 @@ const groupedQuestions = computed(() => {
 @media (max-width: 640px) {
   .screen-view {
     padding: 16px;
+  }
+
+  .screen-timer {
+    top: 12px;
+    right: 16px;
   }
 
   .question-board {
