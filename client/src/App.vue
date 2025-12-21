@@ -47,6 +47,10 @@ import { RouterView } from 'vue-router'
   width: clamp(140px, 18vw, 220px);
 }
 
+.oe-logo {
+  width: clamp(160px, 22vw, 260px);
+}
+
 .business-logo {
   width: clamp(160px, 22vw, 260px);
 }
