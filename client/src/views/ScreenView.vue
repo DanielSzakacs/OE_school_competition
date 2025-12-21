@@ -22,7 +22,12 @@
       <div class="question-board">
         <div class="question-board__column" v-for="(questions, category) in groupedQuestions" :key="category">
           <h3 class="question-board__category">{{ category }}</h3>
-          <div v-for="question in questions" :key="question.id" class="question-board__point">
+          <div
+            v-for="question in questions"
+            :key="question.id"
+            class="question-board__point"
+            :class="{ 'question-board__point--disabled': !question.isVisible }"
+          >
             {{ question.point }}
           </div>
         </div>
@@ -118,6 +123,12 @@ const groupedQuestions = computed(() => {
   border-radius: 12px;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.question-board__point--disabled {
+  background: rgba(148, 156, 170, 0.65);
+  color: rgba(240, 243, 248, 0.7);
+  box-shadow: none;
 }
 
 .active-question {

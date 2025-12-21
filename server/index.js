@@ -38,11 +38,11 @@ async function buildPublicState() {
       orderBy: { seat: "asc" },
     }),
     prisma.question.findMany({
-      where: { isVisible: true },
       select: {
         id: true,
         category: true,
         point: true,
+        isVisible: true,
       },
       orderBy: [{ category: "asc" }, { point: "asc" }],
     }),
