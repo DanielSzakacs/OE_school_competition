@@ -10,6 +10,7 @@ export interface QuestionSummary {
   id: number
   category: string
   point: number
+  isVisible: boolean
 }
 
 export interface ActiveQuestion extends QuestionSummary {
