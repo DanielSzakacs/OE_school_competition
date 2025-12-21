@@ -30,11 +30,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 async function main() {
   // 1) Players (seat 1..5 fixen)
   const players = [
-    { seat: 1, name: "1" },
-    { seat: 2, name: "2" },
-    { seat: 3, name: "3" },
-    { seat: 4, name: "4" },
-    { seat: 5, name: "5" },
+    { seat: 1, name: "Vállalkozó négyes" },
+    { seat: 2, name: "SparkUp" },
+    { seat: 3, name: "Tőke Mesterei" },
+    { seat: 4, name: "Flow" },
+    { seat: 5, name: "LogiK4" },
   ];
 
   // 2) Questions (példa pár darab)
