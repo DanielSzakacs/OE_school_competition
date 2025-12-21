@@ -182,7 +182,7 @@ const hit = () => {
 }
 
 .buzz-button--active {
-  background: #ff1e1e;
+  background: linear-gradient(to right, #78ae66 0%, #e498e3 100%);
   box-shadow: 0 0 20px rgba(255, 30, 30, 0.6);
 }
 
