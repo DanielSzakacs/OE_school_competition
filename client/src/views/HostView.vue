@@ -50,7 +50,7 @@
             :key="question.id"
             class="host-button host-button--question"
             style="display: block; width: 100%; padding: 12px; margin-bottom: 8px"
-            :disabled="!!activeQuestion"
+            :disabled="!!activeQuestion || !question.isVisible"
             @click="select(question.id)"
           >
             {{ question.point }}

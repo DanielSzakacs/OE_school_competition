@@ -10,6 +10,7 @@ export interface QuestionSummary {
   id: number
   category: string
   point: number
+  isVisible: boolean
 }
 
 export interface ActiveQuestion extends QuestionSummary {
@@ -26,6 +27,10 @@ export interface RuntimeState {
   activeQuestionId: number | null
   buzzOpen: boolean
   buzzWinnerSeat: number | null
+  disabledBuzzSeats: number[]
+  timerEndsAt: number | null
+  timerRemainingMs: number | null
+  timerPaused: boolean
 }
 
 export interface GameState {

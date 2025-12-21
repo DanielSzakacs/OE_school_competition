@@ -24,12 +24,58 @@ const io = new Server(server, {
 
 const ROOM_CODE = "ROOM1";
 const exec = promisify(execCallback);
+const QUESTION_DURATION_MS = 30_000;
+const TIMER_TICK_MS = 250;
 
 const runtime = {
   activeQuestionId: null,
   buzzOpen: false,
   buzzWinnerSeat: null,
   hostSocketId: null,
+  disabledBuzzSeats: new Set(),
+  timerEndsAt: null,
+  timerRemainingMs: null,
+  timerPaused: false,
+};
+
+const resetTimer = () => {
+  runtime.timerEndsAt = null;
+  runtime.timerRemainingMs = null;
+  runtime.timerPaused = false;
+};
+
+const startTimer = () => {
+  runtime.timerRemainingMs = QUESTION_DURATION_MS;
+  runtime.timerEndsAt = Date.now() + QUESTION_DURATION_MS;
+  runtime.timerPaused = false;
+};
+
+const pauseTimer = () => {
+  if (runtime.timerPaused || runtime.timerEndsAt == null) return;
+  runtime.timerRemainingMs = Math.max(0, runtime.timerEndsAt - Date.now());
+  runtime.timerEndsAt = null;
+  runtime.timerPaused = true;
+};
+
+const resumeTimer = () => {
+  if (!runtime.timerPaused || runtime.timerRemainingMs == null) return;
+  runtime.timerEndsAt = Date.now() + runtime.timerRemainingMs;
+  runtime.timerPaused = false;
+};
+
+const getTimerRemainingMs = () => {
+  if (runtime.timerEndsAt != null && !runtime.timerPaused) {
+    return Math.max(0, runtime.timerEndsAt - Date.now());
+  }
+  return runtime.timerRemainingMs;
+};
+
+const resetQuestionState = () => {
+  runtime.activeQuestionId = null;
+  runtime.buzzOpen = false;
+  runtime.buzzWinnerSeat = null;
+  runtime.disabledBuzzSeats = new Set();
+  resetTimer();
 };
 
 async function buildPublicState() {
@@ -38,11 +84,11 @@ async function buildPublicState() {
       orderBy: { seat: "asc" },
     }),
     prisma.question.findMany({
-      where: { isVisible: true },
       select: {
         id: true,
         category: true,
         point: true,
+        isVisible: true,
       },
       orderBy: [{ category: "asc" }, { point: "asc" }],
     }),
@@ -66,6 +112,10 @@ async function buildPublicState() {
       activeQuestionId: runtime.activeQuestionId,
       buzzOpen: runtime.buzzOpen,
       buzzWinnerSeat: runtime.buzzWinnerSeat,
+      disabledBuzzSeats: Array.from(runtime.disabledBuzzSeats),
+      timerEndsAt: runtime.timerEndsAt,
+      timerRemainingMs: getTimerRemainingMs(),
+      timerPaused: runtime.timerPaused,
     },
     activeQuestion,
   };
@@ -88,6 +138,30 @@ async function emitState(ioInstance) {
     }
   }
 }
+
+async function handleQuestionTimeout() {
+  if (!runtime.activeQuestionId) return;
+  await prisma.question.update({
+    where: { id: runtime.activeQuestionId },
+    data: { isVisible: false },
+  });
+  resetQuestionState();
+  await emitState(io);
+}
+
+let timerTickInFlight = false;
+setInterval(async () => {
+  if (timerTickInFlight) return;
+  if (!runtime.activeQuestionId) return;
+  if (runtime.timerPaused || runtime.timerEndsAt == null) return;
+  if (Date.now() < runtime.timerEndsAt) return;
+  timerTickInFlight = true;
+  try {
+    await handleQuestionTimeout();
+  } finally {
+    timerTickInFlight = false;
+  }
+}, TIMER_TICK_MS);
 
 io.on("connection", (socket) => {
   socket.on("room:join", async ({ role, seat }) => {
@@ -112,6 +186,8 @@ io.on("connection", (socket) => {
     runtime.activeQuestionId = questionId;
     runtime.buzzOpen = true;
     runtime.buzzWinnerSeat = null;
+    runtime.disabledBuzzSeats = new Set();
+    startTimer();
 
     await emitState(io);
   });
@@ -120,9 +196,11 @@ io.on("connection", (socket) => {
     if (!runtime.activeQuestionId) return;
     if (!runtime.buzzOpen) return;
     if (runtime.buzzWinnerSeat !== null) return;
+    if (runtime.disabledBuzzSeats.has(seat)) return;
 
     runtime.buzzWinnerSeat = seat;
     runtime.buzzOpen = false;
+    pauseTimer();
 
     await emitState(io);
   });
@@ -149,16 +227,38 @@ io.on("connection", (socket) => {
         where: { seat: runtime.buzzWinnerSeat },
         data: { score: { increment: question.point } },
       });
+      await prisma.question.update({
+        where: { id: question.id },
+        data: { isVisible: false },
+      });
+      resetQuestionState();
+      await emitState(io);
+      return;
     }
 
-    await prisma.question.update({
-      where: { id: question.id },
-      data: { isVisible: false },
-    });
-
-    runtime.activeQuestionId = null;
-    runtime.buzzOpen = false;
+    runtime.disabledBuzzSeats.add(runtime.buzzWinnerSeat);
     runtime.buzzWinnerSeat = null;
+
+    const players = await prisma.player.findMany({
+      select: { seat: true },
+    });
+    const remainingSeats = players.filter(
+      (player) => !runtime.disabledBuzzSeats.has(player.seat)
+    );
+
+    const remainingMs = getTimerRemainingMs();
+    if (remainingSeats.length === 0 || (remainingMs != null && remainingMs <= 0)) {
+      await prisma.question.update({
+        where: { id: question.id },
+        data: { isVisible: false },
+      });
+      resetQuestionState();
+      await emitState(io);
+      return;
+    }
+
+    runtime.buzzOpen = true;
+    resumeTimer();
 
     await emitState(io);
   });
@@ -174,9 +274,7 @@ io.on("connection", (socket) => {
       data: { isVisible: true },
     });
 
-    runtime.activeQuestionId = null;
-    runtime.buzzOpen = false;
-    runtime.buzzWinnerSeat = null;
+    resetQuestionState();
 
     await emitState(io);
   });
@@ -192,9 +290,7 @@ io.on("connection", (socket) => {
       console.error("Seed failed:", error);
     }
 
-    runtime.activeQuestionId = null;
-    runtime.buzzOpen = false;
-    runtime.buzzWinnerSeat = null;
+    resetQuestionState();
 
     await emitState(io);
   });

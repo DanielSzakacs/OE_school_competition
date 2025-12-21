@@ -85,6 +85,7 @@ const canBuzz = computed(() => {
   if (!hasActiveQuestion) return false
   if (!rt.buzzOpen) return false
   if (rt.buzzWinnerSeat != null) return false
+  if (rt.disabledBuzzSeats?.includes(seat.value)) return false
   return true
 })
 
