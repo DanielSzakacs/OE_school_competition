@@ -4,7 +4,7 @@ import { RouterView } from 'vue-router'
 
 <template>
   <div class="app">
-    <header class="app-header">
+    <header id="app-header" class="app-header">
       <div class="logo-stack">
         <img src="@/assets/oe_logo.png" alt="OE logo" class="logo oe-logo" />
         <img src="@/assets/business.png" alt="Business logo" class="logo business-logo" />
@@ -27,13 +27,17 @@ import { RouterView } from 'vue-router'
 
 .app-header {
   padding: 24px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .logo-stack {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
 }
 
 .logo {
@@ -41,6 +45,10 @@ import { RouterView } from 'vue-router'
   height: auto;
   max-width: 240px;
   width: clamp(140px, 18vw, 220px);
+}
+
+.oe-logo {
+  width: clamp(160px, 22vw, 260px);
 }
 
 .business-logo {

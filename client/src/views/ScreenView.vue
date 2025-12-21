@@ -1,7 +1,9 @@
 <template>
   <div class="screen-view">
-    <div v-if="activeQuestion" class="screen-center active-question">
+    <teleport to="#app-header">
       <div v-if="timerSeconds != null" class="screen-timer">{{ timerSeconds }}</div>
+    </teleport>
+    <div v-if="activeQuestion" class="screen-center active-question">
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
@@ -125,9 +127,11 @@ const groupedQuestions = computed(() => {
 
 .question-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 20px;
-  width: min(100%, 960px);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 28px;
+  width: min(100%, 1200px);
+  transform: scale(1.08);
+  transform-origin: center;
 }
 
 .question-board__column {
@@ -139,9 +143,9 @@ const groupedQuestions = computed(() => {
   text-align: center;
   background: rgba(112, 156, 189, 0.45);
   color: #f4f8ff;
-  padding: 10px 12px;
+  padding: 14px 16px;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -151,9 +155,10 @@ const groupedQuestions = computed(() => {
   text-align: center;
   background: #ffffff;
   color: #1b2239;
-  padding: 10px 12px;
+  padding: 14px 16px;
   border-radius: 12px;
   font-weight: 700;
+  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -167,14 +172,11 @@ const groupedQuestions = computed(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .screen-timer {
-  position: absolute;
-  top: 16px;
-  right: 24px;
-  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 700;
   background: linear-gradient(to right, #eba313 0%, #eba313 100%);
   -webkit-background-clip: text;
@@ -182,11 +184,11 @@ const groupedQuestions = computed(() => {
 }
 
 .active-title {
-  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
 }
 
 .active-question__text {
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
   max-width: 900px;
 }
 
@@ -213,11 +215,6 @@ const groupedQuestions = computed(() => {
 @media (max-width: 640px) {
   .screen-view {
     padding: 16px;
-  }
-
-  .screen-timer {
-    top: 12px;
-    right: 16px;
   }
 
   .question-board {
