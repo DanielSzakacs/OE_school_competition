@@ -43,16 +43,17 @@ import { RouterView } from 'vue-router'
 .logo {
   display: block;
   height: auto;
-  max-width: 240px;
+  /* max-width: 240px; */
   width: clamp(140px, 18vw, 220px);
 }
 
 .oe-logo {
-  width: clamp(160px, 22vw, 260px);
+  width: clamp(160px, 22vw, 300px);
+  margin-bottom: 4%;
 }
 
 .business-logo {
-  width: clamp(160px, 22vw, 260px);
+  width: clamp(160px, 22vw, 230px);
 }
 
 .app-main {
