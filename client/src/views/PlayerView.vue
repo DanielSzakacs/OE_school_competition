@@ -21,7 +21,6 @@
           <div v-if="activeQuestion.image" class="player-question__image">
             <img :src="activeQuestion.image" alt="Kérdés kép" />
           </div>
-
         </template>
         <template v-else-if="winnerName">
           <div class="player-question__answerer">A valaszolo: {{ winnerName }}</div>
@@ -31,7 +30,12 @@
         </template>
       </div>
 
-      <button class="buzz-button" :class="{ 'buzz-button--active': isWinner }" @click="hit" :disabled="!canBuzz">
+      <button
+        class="buzz-button"
+        :class="{ 'buzz-button--active': isWinner }"
+        @click="hit"
+        :disabled="!canBuzz"
+      >
         {{ playerName }}
       </button>
     </div>
@@ -169,7 +173,9 @@ const hit = () => {
   font-size: clamp(1rem, 2.4vw, 1.4rem);
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .buzz-button:disabled {
@@ -182,7 +188,7 @@ const hit = () => {
 }
 
 .buzz-button--active {
-  background: linear-gradient(to right, #78ae66 0%, #e498e3 100%);
+  background: #37851e;
   box-shadow: 0 0 20px rgba(255, 30, 30, 0.6);
 }
 

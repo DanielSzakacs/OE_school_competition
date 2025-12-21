@@ -6,8 +6,8 @@ import { RouterView } from 'vue-router'
   <div class="app">
     <header class="app-header">
       <div class="logo-stack">
-        <img src="@/assets/oe_logo.jpeg" alt="OE logo" class="logo oe-logo" />
-        <img src="@/assets/business.jfif" alt="Business logo" class="logo business-logo" />
+        <img src="@/assets/oe_logo.png" alt="OE logo" class="logo oe-logo" />
+        <img src="@/assets/business.png" alt="Business logo" class="logo business-logo" />
       </div>
     </header>
 
