@@ -170,7 +170,8 @@ const groupedQuestions = computed(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 16px;
+  gap: clamp(16px, 2.2vw, 28px);
+  width: min(95vw, 1400px);
 }
 
 .screen-timer {
@@ -182,16 +183,17 @@ const groupedQuestions = computed(() => {
 }
 
 .active-title {
-  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.8rem);
 }
 
 .active-question__text {
-  font-size: clamp(1rem, 2vw, 1.4rem);
-  max-width: 900px;
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  max-width: min(92vw, 1200px);
+  line-height: 1.3;
 }
 
 .active-question__answerer {
-  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
   font-weight: 600;
   color: rgba(248, 251, 255, 0.9);
 }
@@ -201,13 +203,15 @@ const groupedQuestions = computed(() => {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 10px;
-  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  gap: clamp(10px, 1.8vw, 18px);
+  font-size: clamp(1.15rem, 2.3vw, 1.75rem);
 }
 
 .active-question__image img {
-  max-width: min(90vw, 420px);
-  border-radius: 12px;
+  max-width: min(90vw, 640px);
+  max-height: 40vh;
+  border-radius: 16px;
+  object-fit: contain;
 }
 
 @media (max-width: 640px) {
