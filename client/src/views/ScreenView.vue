@@ -127,23 +127,23 @@ const groupedQuestions = computed(() => {
 
 .question-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 20px;
-  width: min(100%, 960px);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 32px;
+  width: min(100%, 1320px);
 }
 
 .question-board__column {
   display: grid;
-  gap: 10px;
+  gap: 16px;
 }
 
 .question-board__category {
   text-align: center;
   background: rgba(112, 156, 189, 0.45);
   color: #f4f8ff;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 1rem;
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 1.35rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -153,8 +153,9 @@ const groupedQuestions = computed(() => {
   text-align: center;
   background: #ffffff;
   color: #1b2239;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 1.4rem;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
@@ -173,7 +174,7 @@ const groupedQuestions = computed(() => {
 }
 
 .screen-timer {
-  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-size: clamp(1.8rem, 3.6vw, 3rem);
   font-weight: 700;
   background: linear-gradient(to right, #eba313 0%, #eba313 100%);
   -webkit-background-clip: text;
@@ -215,7 +216,8 @@ const groupedQuestions = computed(() => {
   }
 
   .question-board {
-    gap: 12px;
+    gap: 16px;
+    width: 100%;
   }
 }
 </style>
