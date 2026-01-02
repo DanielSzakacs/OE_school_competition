@@ -13,10 +13,10 @@
           </div>
           <div class="player-question__text">{{ activeQuestion.question }}</div>
           <ul class="player-question__answers">
-            <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-            <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-            <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-            <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+            <li v-if="hasAnswer(activeQuestion.answerA)"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+            <li v-if="hasAnswer(activeQuestion.answerB)"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+            <li v-if="hasAnswer(activeQuestion.answerC)"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+            <li v-if="hasAnswer(activeQuestion.answerD)"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
           </ul>
           <div v-if="activeQuestion.image" class="player-question__image">
             <img :src="activeQuestion.image" alt="Kérdés kép" />
@@ -96,6 +96,8 @@ const canBuzz = computed(() => {
 const hit = () => {
   game.hitBuzz(seat.value)
 }
+
+const hasAnswer = (value) => !!value?.trim()
 </script>
 
 <style scoped>
@@ -152,6 +154,24 @@ const hit = () => {
   border-radius: 12px;
   font-weight: 600;
   font-size: clamp(1rem, 2vw, 1.4rem);
+}
+
+.player-question__answers {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+}
+
+.player-question__answers li {
+  background: rgba(255, 255, 255, 0.92);
+  color: #1b2239;
+  padding: 10px 12px;
+  border-radius: 12px;
 }
 
 .player-question__answerer,

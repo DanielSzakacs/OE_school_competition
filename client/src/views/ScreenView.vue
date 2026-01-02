@@ -6,14 +6,15 @@
     <div v-if="activeQuestion" class="screen-center active-question">
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
-      <p v-if="winnerName" class="active-question__answerer">Valaszol: {{ winnerName }}</p>
-
+      <div v-if="winnerName" class="active-question__answerer-box">
+        <p class="active-question__answerer">Valaszol: {{ winnerName }}</p>
+      </div>
 
       <ul class="active-question__answers">
-        <li><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-        <li><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-        <li><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-        <li><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+        <li v-if="hasAnswer(activeQuestion.answerA)"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
+        <li v-if="hasAnswer(activeQuestion.answerB)"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
+        <li v-if="hasAnswer(activeQuestion.answerC)"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
+        <li v-if="hasAnswer(activeQuestion.answerD)"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
       </ul>
 
       <div v-if="activeQuestion.image" class="active-question__image">
@@ -91,6 +92,8 @@ const timerSeconds = computed(() => {
   if (remaining == null) return null
   return Math.ceil(remaining / 1000)
 })
+
+const hasAnswer = (value) => !!value?.trim()
 
 const groupedQuestions = computed(() => {
   const groups = {}
@@ -203,8 +206,22 @@ const groupedQuestions = computed(() => {
   padding: 0;
   margin: 0;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(10px, 1.8vw, 18px);
   font-size: clamp(1.15rem, 2.3vw, 1.75rem);
+}
+
+.active-question__answerer-box {
+  background: linear-gradient(to right, #78ae66 0%, #08151b 100%);
+  padding: 12px 18px;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+.active-question__answers li {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 16px;
+  border-radius: 12px;
 }
 
 .active-question__image img {
