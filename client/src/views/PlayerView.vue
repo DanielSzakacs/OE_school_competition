@@ -13,10 +13,18 @@
           </div>
           <div class="player-question__text">{{ activeQuestion.question }}</div>
           <ul class="player-question__answers">
-            <li v-if="hasAnswer(activeQuestion.answerA)"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-            <li v-if="hasAnswer(activeQuestion.answerB)"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-            <li v-if="hasAnswer(activeQuestion.answerC)"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-            <li v-if="hasAnswer(activeQuestion.answerD)"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+            <li v-if="hasAnswer(activeQuestion.answerA)">
+              <strong>A.</strong> {{ activeQuestion.answerA }}
+            </li>
+            <li v-if="hasAnswer(activeQuestion.answerB)">
+              <strong>B.</strong> {{ activeQuestion.answerB }}
+            </li>
+            <li v-if="hasAnswer(activeQuestion.answerC)">
+              <strong>C.</strong> {{ activeQuestion.answerC }}
+            </li>
+            <li v-if="hasAnswer(activeQuestion.answerD)">
+              <strong>D.</strong> {{ activeQuestion.answerD }}
+            </li>
           </ul>
           <div v-if="activeQuestion.image" class="player-question__image">
             <img :src="activeQuestion.image" alt="Kérdés kép" />
@@ -208,8 +216,9 @@ const hasAnswer = (value) => !!value?.trim()
 }
 
 .buzz-button--active {
-  background: #37851e;
-  box-shadow: 0 0 20px rgba(255, 30, 30, 0.6);
+  background: #76af63;
+  color: white;
+  /* box-shadow: 0 0 20px rgba(255, 30, 30, 0.6); */
 }
 
 .buzz-button:not(:disabled):hover {

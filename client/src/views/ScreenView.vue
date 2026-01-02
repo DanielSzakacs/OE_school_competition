@@ -11,10 +11,18 @@
       </div>
 
       <ul class="active-question__answers">
-        <li v-if="hasAnswer(activeQuestion.answerA)"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
-        <li v-if="hasAnswer(activeQuestion.answerB)"><strong>B.</strong> {{ activeQuestion.answerB }}</li>
-        <li v-if="hasAnswer(activeQuestion.answerC)"><strong>C.</strong> {{ activeQuestion.answerC }}</li>
-        <li v-if="hasAnswer(activeQuestion.answerD)"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
+        <li v-if="hasAnswer(activeQuestion.answerA)">
+          <strong>A.</strong> {{ activeQuestion.answerA }}
+        </li>
+        <li v-if="hasAnswer(activeQuestion.answerB)">
+          <strong>B.</strong> {{ activeQuestion.answerB }}
+        </li>
+        <li v-if="hasAnswer(activeQuestion.answerC)">
+          <strong>C.</strong> {{ activeQuestion.answerC }}
+        </li>
+        <li v-if="hasAnswer(activeQuestion.answerD)">
+          <strong>D.</strong> {{ activeQuestion.answerD }}
+        </li>
       </ul>
 
       <div v-if="activeQuestion.image" class="active-question__image">
@@ -24,7 +32,11 @@
 
     <div v-else class="screen-center">
       <div class="question-board">
-        <div class="question-board__column" v-for="(questions, category) in groupedQuestions" :key="category">
+        <div
+          class="question-board__column"
+          v-for="(questions, category) in groupedQuestions"
+          :key="category"
+        >
           <h3 class="question-board__category">{{ category }}</h3>
           <div
             v-for="question in questions"
@@ -108,7 +120,6 @@ const groupedQuestions = computed(() => {
 
   return groups
 })
-
 </script>
 
 <style scoped>
@@ -212,7 +223,7 @@ const groupedQuestions = computed(() => {
 }
 
 .active-question__answerer-box {
-  background: linear-gradient(to right, #78ae66 0%, #08151b 100%);
+  background: linear-gradient(to right, #76af63 0%);
   padding: 12px 18px;
   border-radius: 16px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
