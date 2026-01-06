@@ -241,26 +241,26 @@ const handleGoodAnswer = () => {
 }
 
 watch(
-  activeQuestion,
-  async (newQuestion) => {
+  () => activeQuestion.value?.id ?? null,
+  async (questionId) => {
     stopThinkAudio()
     showQuestionContent.value = false
 
-    if (!newQuestion) {
+    if (!questionId || !activeQuestion.value) {
       isIntroPlaying.value = false
       return
     }
 
-  const needsIntro = isFirstOrLastQuestion.value
-  if (needsIntro) {
-    isIntroPlaying.value = true
-    await playQuestionIntro()
-    isIntroPlaying.value = false
-  }
+    const needsIntro = isFirstOrLastQuestion.value
+    if (needsIntro) {
+      isIntroPlaying.value = true
+      await playQuestionIntro()
+      isIntroPlaying.value = false
+    }
 
-  showQuestionContent.value = true
-  startThinkAudio()
-},
+    showQuestionContent.value = true
+    startThinkAudio()
+  },
   { immediate: true }
 )
 
