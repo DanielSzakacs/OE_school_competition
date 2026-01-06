@@ -36,6 +36,7 @@ const runtime = {
   timerEndsAt: null,
   timerRemainingMs: null,
   timerPaused: false,
+  sfxEnabled: true,
 };
 
 const resetTimer = () => {
@@ -116,6 +117,7 @@ async function buildPublicState() {
       timerEndsAt: runtime.timerEndsAt,
       timerRemainingMs: getTimerRemainingMs(),
       timerPaused: runtime.timerPaused,
+      sfxEnabled: runtime.sfxEnabled,
     },
     activeQuestion,
   };
@@ -232,6 +234,7 @@ io.on("connection", (socket) => {
         data: { isVisible: false },
       });
       resetQuestionState();
+      io.to(ROOM_CODE).emit("sfx:goodAnswer");
       await emitState(io);
       return;
     }
@@ -292,6 +295,13 @@ io.on("connection", (socket) => {
 
     resetQuestionState();
 
+    await emitState(io);
+  });
+
+  socket.on("sfx:toggle", async ({ enabled }) => {
+    if (socket.data.role !== "host") return;
+
+    runtime.sfxEnabled = !!enabled;
     await emitState(io);
   });
 

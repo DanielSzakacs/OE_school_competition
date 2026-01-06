@@ -55,5 +55,8 @@ export const useGameStore = defineStore('game', {
     seedGame() {
       socket.emit('game:seed')
     },
+    toggleSfx(enabled: boolean) {
+      socket.emit('sfx:toggle', { enabled })
+    },
   },
 })

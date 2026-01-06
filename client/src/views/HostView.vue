@@ -70,6 +70,17 @@
       <li v-for="p in playersList" :key="p.seat">{{ p.name }} — {{ p.score }}</li>
     </ul>
 
+    <div class="host-audio-toggle">
+      <label class="switch">
+        <input type="checkbox" :checked="sfxEnabled" @change="onToggleSfx" />
+        <span class="slider" aria-hidden="true"></span>
+      </label>
+      <div class="host-audio-toggle__label">
+        <h3>Hang effektek</h3>
+        <p>{{ sfxEnabled ? 'Be' : 'Ki' }}kapcsolva</p>
+      </div>
+    </div>
+
     <div style="margin-top: 16px">
       <h3>Admin</h3>
       <button class="host-button host-button--secondary" @click="resetGame">
@@ -128,6 +139,8 @@ const playersList = computed(() => {
 
 const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 
+const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
+
 const winnerName = computed(() => {
   const seat = winnerSeat.value
   if (seat == null) return null
@@ -144,6 +157,11 @@ const buzzStatus = computed(() => {
 })
 
 const hasBuzzWinner = computed(() => winnerSeat.value != null)
+
+const onToggleSfx = (event) => {
+  const target = event.target
+  game.toggleSfx(target?.checked ?? false)
+}
 </script>
 
 <style scoped>
@@ -197,5 +215,66 @@ const hasBuzzWinner = computed(() => winnerSeat.value != null)
 .host-button--secondary {
   margin-top: 8px;
   background: rgba(22, 32, 57, 0.9);
+}
+
+.host-audio-toggle {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.host-audio-toggle__label h3 {
+  margin: 0;
+}
+
+.host-audio-toggle__label p {
+  margin: 2px 0 0;
+  opacity: 0.85;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.25);
+  transition: 0.2s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: rgba(118, 175, 99, 0.8);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
 }
 </style>
