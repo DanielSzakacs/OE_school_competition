@@ -3,7 +3,7 @@
     <teleport to="#app-header">
       <div v-if="timerSeconds != null" class="screen-timer">{{ timerSeconds }}</div>
     </teleport>
-    <div v-if="activeQuestion" class="screen-center active-question">
+    <div v-if="activeQuestion && showQuestionContent" class="screen-center active-question">
       <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p class="active-question__text">{{ activeQuestion.question }}</p>
       <div v-if="winnerName" class="active-question__answerer-box">
@@ -30,6 +30,10 @@
       </div>
     </div>
 
+    <div v-else-if="activeQuestion" class="screen-center screen-waiting">
+      <p>Figyelem, új kérdés érkezik...</p>
+    </div>
+
     <div v-else class="screen-center">
       <div class="question-board">
         <div
@@ -52,26 +56,48 @@
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGameStore } from '@/stores/game'
+import type { QuestionSummary } from '@/types/game'
+import { socket } from '@/socket'
 
 const game = useGameStore()
 const nowMs = ref(Date.now())
-let timerIntervalId
+let timerIntervalId: number | null = null
+let introResolve: (() => void) | null = null
+
+const thinkAudio = new Audio('/sfx/think_music.mp3')
+thinkAudio.preload = 'auto'
+thinkAudio.loop = false
+
+const questionStartAudio = new Audio('/sfx/question_start_music.mp3')
+questionStartAudio.preload = 'auto'
+questionStartAudio.loop = false
+
+const goodAnswerAudio = new Audio('/sfx/good_answer_music.mp3')
+goodAnswerAudio.preload = 'auto'
+goodAnswerAudio.loop = false
+
+const showQuestionContent = ref(false)
+const isIntroPlaying = ref(false)
+const thinkStarted = ref(false)
 
 onMounted(() => {
   game.join('screen')
   timerIntervalId = window.setInterval(() => {
     nowMs.value = Date.now()
   }, 200)
+  socket.on('sfx:goodAnswer', handleGoodAnswer)
 })
 
-onUnmounted(() => {
-  if (timerIntervalId) {
-    window.clearInterval(timerIntervalId)
-  }
-})
+  onUnmounted(() => {
+    if (timerIntervalId) {
+      window.clearInterval(timerIntervalId)
+    }
+    stopAllAudio()
+    socket.off('sfx:goodAnswer', handleGoodAnswer)
+  })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
 const playersList = computed(() => {
@@ -79,6 +105,8 @@ const playersList = computed(() => {
 })
 
 const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
+const isTimerPaused = computed(() => game.state?.runtime?.timerPaused ?? false)
+const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
@@ -105,20 +133,183 @@ const timerSeconds = computed(() => {
   return Math.ceil(remaining / 1000)
 })
 
-const hasAnswer = (value) => !!value?.trim()
+const visibleQuestionCount = computed(
+  () => (game.state?.questions ?? []).filter((q) => q.isVisible).length
+)
 
-const groupedQuestions = computed(() => {
-  const groups = {}
+const totalQuestionCount = computed(() => game.state?.questions?.length ?? 0)
+
+const isFirstOrLastQuestion = computed(() => {
+  if (!activeQuestion.value) return false
+  if (totalQuestionCount.value === 0) return false
+  return (
+    visibleQuestionCount.value === totalQuestionCount.value ||
+    visibleQuestionCount.value === 1
+  )
+})
+
+const hasAnswer = (value: string | null | undefined) => !!value?.trim()
+
+const groupedQuestions = computed<Record<string, QuestionSummary[]>>(() => {
+  const groups: Record<string, QuestionSummary[]> = {}
   const questions = game.state?.questions ?? []
 
   questions.forEach((q) => {
-    if (!groups[q.category]) {
-      groups[q.category] = []
-    }
-    groups[q.category].push(q)
+    const categoryGroup = groups[q.category] ?? []
+    categoryGroup.push(q)
+    groups[q.category] = categoryGroup
   })
 
   return groups
+})
+
+const playQuestionIntro = () => {
+  questionStartAudio.pause()
+  questionStartAudio.currentTime = 0
+
+  if (!sfxEnabled.value) return Promise.resolve()
+
+  return new Promise<void>((resolve) => {
+    const cleanup = () => {
+      questionStartAudio.onended = null
+      introResolve = null
+    }
+
+    introResolve = () => {
+      cleanup()
+      resolve()
+    }
+
+    questionStartAudio.onended = () => {
+      cleanup()
+      resolve()
+    }
+
+    questionStartAudio.play().catch(() => {
+      cleanup()
+      resolve()
+    })
+  })
+}
+
+const skipIntro = () => {
+  if (introResolve) {
+    introResolve()
+  }
+}
+
+const stopThinkAudio = () => {
+  thinkAudio.pause()
+  thinkAudio.currentTime = 0
+  thinkStarted.value = false
+}
+
+const stopAllAudio = () => {
+  stopThinkAudio()
+  questionStartAudio.pause()
+  questionStartAudio.currentTime = 0
+  goodAnswerAudio.pause()
+  goodAnswerAudio.currentTime = 0
+}
+
+const startThinkAudio = () => {
+  thinkStarted.value = true
+  syncThinkAudio()
+}
+
+const syncThinkAudio = () => {
+  if (!thinkStarted.value || !activeQuestion.value || !showQuestionContent.value) {
+    thinkAudio.pause()
+    return
+  }
+
+  if (!sfxEnabled.value || isIntroPlaying.value || isTimerPaused.value || winnerSeat.value != null) {
+    thinkAudio.pause()
+    return
+  }
+
+  thinkAudio.play().catch(() => {})
+}
+
+const handleGoodAnswer = () => {
+  stopThinkAudio()
+  if (!sfxEnabled.value) return
+
+  goodAnswerAudio.pause()
+  goodAnswerAudio.currentTime = 0
+  goodAnswerAudio.play().catch(() => {})
+}
+
+watch(
+  activeQuestion,
+  async (newQuestion) => {
+    stopThinkAudio()
+    showQuestionContent.value = false
+
+    if (!newQuestion) {
+      isIntroPlaying.value = false
+      return
+    }
+
+  const needsIntro = isFirstOrLastQuestion.value
+  if (needsIntro) {
+    isIntroPlaying.value = true
+    await playQuestionIntro()
+    isIntroPlaying.value = false
+  }
+
+  showQuestionContent.value = true
+  startThinkAudio()
+},
+  { immediate: true }
+)
+
+watch(
+  () => isTimerPaused.value,
+  (paused) => {
+    if (!activeQuestion.value) return
+    if (paused) {
+      thinkAudio.pause()
+    } else {
+      syncThinkAudio()
+    }
+  }
+)
+
+watch(
+  () => winnerSeat.value,
+  () => {
+    if (!activeQuestion.value) return
+    if (winnerSeat.value != null) {
+      thinkAudio.pause()
+    } else {
+      syncThinkAudio()
+    }
+  }
+)
+
+watch(
+  sfxEnabled,
+  (enabled) => {
+    if (!enabled) {
+      thinkAudio.pause()
+      questionStartAudio.pause()
+      goodAnswerAudio.pause()
+      if (isIntroPlaying.value) {
+        skipIntro()
+        isIntroPlaying.value = false
+        showQuestionContent.value = true
+      }
+      return
+    }
+
+    if (isIntroPlaying.value) return
+    syncThinkAudio()
+  }
+)
+
+watch(showQuestionContent, () => {
+  syncThinkAudio()
 })
 </script>
 
@@ -240,6 +431,17 @@ const groupedQuestions = computed(() => {
   max-height: 40vh;
   border-radius: 16px;
   object-fit: contain;
+}
+
+.screen-waiting {
+  color: rgba(244, 248, 255, 0.85);
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-weight: 600;
+  min-height: calc(60vh - 120px);
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 @media (max-width: 640px) {
