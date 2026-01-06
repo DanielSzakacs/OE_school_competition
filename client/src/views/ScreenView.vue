@@ -82,6 +82,58 @@ goodAnswerAudio.loop = false
 const showQuestionContent = ref(false)
 const isIntroPlaying = ref(false)
 const thinkStarted = ref(false)
+const fadeIntervals = new Map<HTMLAudioElement, number>()
+
+const cancelFade = (audio: HTMLAudioElement) => {
+  const intervalId = fadeIntervals.get(audio)
+  if (intervalId) {
+    window.clearInterval(intervalId)
+    fadeIntervals.delete(audio)
+  }
+  audio.volume = 1
+}
+
+const fadeOutAudio = (
+  audio: HTMLAudioElement,
+  { resetTime = false }: { resetTime?: boolean } = {}
+) => {
+  cancelFade(audio)
+
+  const startingVolume = audio.volume || 1
+  if (audio.paused || startingVolume === 0) {
+    audio.pause()
+    if (resetTime) {
+      audio.currentTime = 0
+    }
+    audio.volume = 1
+    return Promise.resolve()
+  }
+
+  return new Promise<void>((resolve) => {
+    const fadeDurationMs = 2000
+    const start = performance.now()
+
+    const intervalId = window.setInterval(() => {
+      const elapsed = performance.now() - start
+      const progress = Math.min(1, elapsed / fadeDurationMs)
+      audio.volume = Math.max(0, startingVolume * (1 - progress))
+
+      if (progress >= 1) {
+        window.clearInterval(intervalId)
+        fadeIntervals.delete(audio)
+
+        audio.pause()
+        if (resetTime) {
+          audio.currentTime = 0
+        }
+        audio.volume = 1
+        resolve()
+      }
+    }, 50)
+
+    fadeIntervals.set(audio, intervalId)
+  })
+}
 
 onMounted(() => {
   game.join('screen')
@@ -91,13 +143,13 @@ onMounted(() => {
   socket.on('sfx:goodAnswer', handleGoodAnswer)
 })
 
-  onUnmounted(() => {
-    if (timerIntervalId) {
-      window.clearInterval(timerIntervalId)
-    }
-    stopAllAudio()
-    socket.off('sfx:goodAnswer', handleGoodAnswer)
-  })
+onUnmounted(() => {
+  if (timerIntervalId) {
+    window.clearInterval(timerIntervalId)
+  }
+  stopAllAudio()
+  socket.off('sfx:goodAnswer', handleGoodAnswer)
+})
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
 const playersList = computed(() => {
@@ -127,7 +179,7 @@ const timerRemainingMs = computed(() => {
 })
 
 const timerSeconds = computed(() => {
-  if (!activeQuestion.value) return null
+  if (!activeQuestion.value || !showQuestionContent.value) return null
   const remaining = timerRemainingMs.value
   if (remaining == null) return null
   return Math.ceil(remaining / 1000)
@@ -164,8 +216,10 @@ const groupedQuestions = computed<Record<string, QuestionSummary[]>>(() => {
 })
 
 const playQuestionIntro = () => {
+  cancelFade(questionStartAudio)
   questionStartAudio.pause()
   questionStartAudio.currentTime = 0
+  questionStartAudio.volume = 1
 
   if (!sfxEnabled.value) return Promise.resolve()
 
@@ -199,17 +253,14 @@ const skipIntro = () => {
 }
 
 const stopThinkAudio = () => {
-  thinkAudio.pause()
-  thinkAudio.currentTime = 0
   thinkStarted.value = false
+  return fadeOutAudio(thinkAudio, { resetTime: true })
 }
 
 const stopAllAudio = () => {
-  stopThinkAudio()
-  questionStartAudio.pause()
-  questionStartAudio.currentTime = 0
-  goodAnswerAudio.pause()
-  goodAnswerAudio.currentTime = 0
+  void stopThinkAudio()
+  void fadeOutAudio(questionStartAudio, { resetTime: true })
+  void fadeOutAudio(goodAnswerAudio, { resetTime: true })
 }
 
 const startThinkAudio = () => {
@@ -219,48 +270,52 @@ const startThinkAudio = () => {
 
 const syncThinkAudio = () => {
   if (!thinkStarted.value || !activeQuestion.value || !showQuestionContent.value) {
-    thinkAudio.pause()
+    void fadeOutAudio(thinkAudio)
     return
   }
 
   if (!sfxEnabled.value || isIntroPlaying.value || isTimerPaused.value || winnerSeat.value != null) {
-    thinkAudio.pause()
+    void fadeOutAudio(thinkAudio)
     return
   }
 
+  cancelFade(thinkAudio)
+  thinkAudio.volume = 1
   thinkAudio.play().catch(() => {})
 }
 
-const handleGoodAnswer = () => {
-  stopThinkAudio()
+const handleGoodAnswer = async () => {
+  await stopThinkAudio()
   if (!sfxEnabled.value) return
 
+  cancelFade(goodAnswerAudio)
   goodAnswerAudio.pause()
   goodAnswerAudio.currentTime = 0
+  goodAnswerAudio.volume = 1
   goodAnswerAudio.play().catch(() => {})
 }
 
 watch(
-  activeQuestion,
-  async (newQuestion) => {
-    stopThinkAudio()
+  () => activeQuestion.value?.id ?? null,
+  async (questionId) => {
+    void stopThinkAudio()
     showQuestionContent.value = false
 
-    if (!newQuestion) {
+    if (!questionId || !activeQuestion.value) {
       isIntroPlaying.value = false
       return
     }
 
-  const needsIntro = isFirstOrLastQuestion.value
-  if (needsIntro) {
-    isIntroPlaying.value = true
-    await playQuestionIntro()
-    isIntroPlaying.value = false
-  }
+    const needsIntro = isFirstOrLastQuestion.value
+    if (needsIntro) {
+      isIntroPlaying.value = true
+      await playQuestionIntro()
+      isIntroPlaying.value = false
+    }
 
-  showQuestionContent.value = true
-  startThinkAudio()
-},
+    showQuestionContent.value = true
+    startThinkAudio()
+  },
   { immediate: true }
 )
 
@@ -269,7 +324,7 @@ watch(
   (paused) => {
     if (!activeQuestion.value) return
     if (paused) {
-      thinkAudio.pause()
+      void fadeOutAudio(thinkAudio)
     } else {
       syncThinkAudio()
     }
@@ -281,7 +336,7 @@ watch(
   () => {
     if (!activeQuestion.value) return
     if (winnerSeat.value != null) {
-      thinkAudio.pause()
+      void fadeOutAudio(thinkAudio)
     } else {
       syncThinkAudio()
     }
@@ -292,9 +347,9 @@ watch(
   sfxEnabled,
   (enabled) => {
     if (!enabled) {
-      thinkAudio.pause()
-      questionStartAudio.pause()
-      goodAnswerAudio.pause()
+      void fadeOutAudio(thinkAudio)
+      void fadeOutAudio(questionStartAudio, { resetTime: true })
+      void fadeOutAudio(goodAnswerAudio, { resetTime: true })
       if (isIntroPlaying.value) {
         skipIntro()
         isIntroPlaying.value = false
