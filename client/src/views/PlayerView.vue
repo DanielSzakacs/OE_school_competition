@@ -6,7 +6,7 @@
 
     <div v-else class="player-content">
       <div class="player-question">
-        <template v-if="activeQuestion && (!winnerSeat || isWinner)">
+        <template v-if="activeQuestion && showQuestionContent && (!winnerSeat || isWinner)">
           <div class="player-question__meta">
             <span class="player-question__category">{{ activeQuestion.category }}</span>
             <span class="player-question__points">{{ activeQuestion.point }}</span>
@@ -30,6 +30,9 @@
             <img :src="activeQuestion.image" alt="Kérdés kép" />
           </div>
         </template>
+        <template v-else-if="activeQuestion">
+          <div class="player-question__placeholder">Figyelem, új kérdés érkezik...</div>
+        </template>
         <template v-else-if="winnerName">
           <div class="player-question__answerer">A valaszolo: {{ winnerName }}</div>
         </template>
@@ -51,12 +54,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 
 const route = useRoute()
 const game = useGameStore()
+const showQuestionContent = ref(false)
 
 const seat = computed(() => Number(route.params.seat))
 const seatValid = computed(() => Number.isInteger(seat.value) && seat.value >= 1 && seat.value <= 5)
@@ -68,6 +72,9 @@ onMounted(() => {
 })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
+
+const questionIntroAudio = new Audio('/sfx/question_start_music.mp3')
+questionIntroAudio.preload = 'metadata'
 
 const playersList = computed(() => {
   return (game.state?.players ?? []).slice().sort((a, b) => a.seat - b.seat)
@@ -88,13 +95,65 @@ const playerName = computed(() => {
 
 const isWinner = computed(() => winnerSeat.value === seat.value)
 
+const visibleQuestionCount = computed(
+  () => (game.state?.questions ?? []).filter((q) => q.isVisible).length
+)
+
+const totalQuestionCount = computed(() => game.state?.questions?.length ?? 0)
+
+const isFirstOrLastQuestion = computed(() => {
+  if (!activeQuestion.value) return false
+  if (totalQuestionCount.value === 0) return false
+  return (
+    visibleQuestionCount.value === totalQuestionCount.value ||
+    visibleQuestionCount.value === 1
+  )
+})
+
+const waitForQuestionIntro = () =>
+  new Promise((resolve) => {
+    if (!isFirstOrLastQuestion.value) {
+      resolve()
+      return
+    }
+
+    const scheduleReveal = (durationMs) => {
+      window.setTimeout(resolve, durationMs || 0)
+    }
+
+    if (questionIntroAudio.duration > 0) {
+      scheduleReveal(questionIntroAudio.duration * 1000)
+      return
+    }
+
+    const handleMetadata = () => {
+      scheduleReveal(questionIntroAudio.duration * 1000)
+    }
+
+    questionIntroAudio.addEventListener('loadedmetadata', handleMetadata, { once: true })
+    questionIntroAudio.load()
+  })
+
+watch(
+  () => activeQuestion.value?.id ?? null,
+  async (questionId) => {
+    showQuestionContent.value = false
+
+    if (!questionId || !activeQuestion.value) return
+
+    await waitForQuestionIntro()
+    showQuestionContent.value = true
+  },
+  { immediate: true }
+)
+
 const canBuzz = computed(() => {
   const s = game.state
   const rt = s?.runtime
   if (!seatValid.value || !s || !rt) return false
 
   const hasActiveQuestion = !!rt.activeQuestionId || !!s.activeQuestion
-  if (!hasActiveQuestion) return false
+  if (!hasActiveQuestion || !showQuestionContent.value) return false
   if (!rt.buzzOpen) return false
   if (rt.buzzWinnerSeat != null) return false
   if (rt.disabledBuzzSeats?.includes(seat.value)) return false
