@@ -76,6 +76,8 @@ const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
 const questionIntroAudio = new Audio('/sfx/question_start_music.mp3')
 questionIntroAudio.preload = 'metadata'
 
+const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
+
 const playersList = computed(() => {
   return (game.state?.players ?? []).slice().sort((a, b) => a.seat - b.seat)
 })
@@ -112,7 +114,7 @@ const isFirstOrLastQuestion = computed(() => {
 
 const waitForQuestionIntro = () =>
   new Promise((resolve) => {
-    if (!isFirstOrLastQuestion.value) {
+    if (!isFirstOrLastQuestion.value || !sfxEnabled.value) {
       resolve()
       return
     }
