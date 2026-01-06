@@ -65,9 +65,6 @@ import { socket } from '@/socket'
 const game = useGameStore()
 const nowMs = ref(Date.now())
 let timerIntervalId: number | null = null
-let thinkDelayTimeoutId: number | null = null
-let thinkDelayRemainingMs = 5000
-let thinkDelayStartedAt: number | null = null
 let introResolve: (() => void) | null = null
 
 const thinkAudio = new Audio('/sfx/think_music.mp3')
@@ -94,14 +91,13 @@ onMounted(() => {
   socket.on('sfx:goodAnswer', handleGoodAnswer)
 })
 
-onUnmounted(() => {
-  if (timerIntervalId) {
-    window.clearInterval(timerIntervalId)
-  }
-  clearThinkDelay()
-  stopAllAudio()
-  socket.off('sfx:goodAnswer', handleGoodAnswer)
-})
+  onUnmounted(() => {
+    if (timerIntervalId) {
+      window.clearInterval(timerIntervalId)
+    }
+    stopAllAudio()
+    socket.off('sfx:goodAnswer', handleGoodAnswer)
+  })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
 const playersList = computed(() => {
@@ -202,20 +198,10 @@ const skipIntro = () => {
   }
 }
 
-const clearThinkDelay = () => {
-  if (thinkDelayTimeoutId != null) {
-    window.clearTimeout(thinkDelayTimeoutId)
-    thinkDelayTimeoutId = null
-  }
-  thinkDelayStartedAt = null
-}
-
 const stopThinkAudio = () => {
-  clearThinkDelay()
   thinkAudio.pause()
   thinkAudio.currentTime = 0
   thinkStarted.value = false
-  thinkDelayRemainingMs = 5000
 }
 
 const stopAllAudio = () => {
@@ -226,47 +212,22 @@ const stopAllAudio = () => {
   goodAnswerAudio.currentTime = 0
 }
 
-const startThinkAfterDelay = (delayMs: number) => {
-  thinkDelayRemainingMs = delayMs
-  thinkDelayStartedAt = Date.now()
-  clearThinkDelay()
-
-  if (delayMs <= 0) {
-    startThinkAudio()
-    return
-  }
-
-  thinkDelayTimeoutId = window.setTimeout(() => {
-    thinkDelayRemainingMs = 0
-    thinkDelayStartedAt = null
-    startThinkAudio()
-  }, delayMs)
-}
-
 const startThinkAudio = () => {
   thinkStarted.value = true
-  if (!sfxEnabled.value) return
-  thinkAudio.play().catch(() => {})
+  syncThinkAudio()
 }
 
-const pauseThinkFlow = () => {
-  if (thinkDelayTimeoutId != null && thinkDelayStartedAt != null) {
-    const elapsed = Date.now() - thinkDelayStartedAt
-    thinkDelayRemainingMs = Math.max(0, thinkDelayRemainingMs - elapsed)
-    clearThinkDelay()
-  }
-  thinkAudio.pause()
-}
-
-const resumeThinkFlow = () => {
-  if (!activeQuestion.value) return
-
-  if (!thinkStarted.value) {
-    startThinkAfterDelay(thinkDelayRemainingMs)
+const syncThinkAudio = () => {
+  if (!thinkStarted.value || !activeQuestion.value || !showQuestionContent.value) {
+    thinkAudio.pause()
     return
   }
 
-  if (!sfxEnabled.value) return
+  if (!sfxEnabled.value || isIntroPlaying.value || isTimerPaused.value || winnerSeat.value != null) {
+    thinkAudio.pause()
+    return
+  }
+
   thinkAudio.play().catch(() => {})
 }
 
@@ -290,16 +251,16 @@ watch(
       return
     }
 
-    const needsIntro = isFirstOrLastQuestion.value
-    if (needsIntro) {
-      isIntroPlaying.value = true
-      await playQuestionIntro()
-      isIntroPlaying.value = false
-    }
+  const needsIntro = isFirstOrLastQuestion.value
+  if (needsIntro) {
+    isIntroPlaying.value = true
+    await playQuestionIntro()
+    isIntroPlaying.value = false
+  }
 
-    showQuestionContent.value = true
-    startThinkAfterDelay(5000)
-  },
+  showQuestionContent.value = true
+  startThinkAudio()
+},
   { immediate: true }
 )
 
@@ -308,9 +269,21 @@ watch(
   (paused) => {
     if (!activeQuestion.value) return
     if (paused) {
-      pauseThinkFlow()
+      thinkAudio.pause()
     } else {
-      resumeThinkFlow()
+      syncThinkAudio()
+    }
+  }
+)
+
+watch(
+  () => winnerSeat.value,
+  () => {
+    if (!activeQuestion.value) return
+    if (winnerSeat.value != null) {
+      thinkAudio.pause()
+    } else {
+      syncThinkAudio()
     }
   }
 )
@@ -331,11 +304,13 @@ watch(
     }
 
     if (isIntroPlaying.value) return
-    if (thinkStarted.value && !isTimerPaused.value) {
-      thinkAudio.play().catch(() => {})
-    }
+    syncThinkAudio()
   }
 )
+
+watch(showQuestionContent, () => {
+  syncThinkAudio()
+})
 </script>
 
 <style scoped>
