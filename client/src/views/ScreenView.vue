@@ -79,10 +79,16 @@ const goodAnswerAudio = new Audio('/sfx/good_answer_music.mp3')
 goodAnswerAudio.preload = 'auto'
 goodAnswerAudio.loop = false
 
+const badAnswerAudio = new Audio('/sfx/bad_answer.mp3')
+badAnswerAudio.preload = 'auto'
+badAnswerAudio.loop = false
+
 const showQuestionContent = ref(false)
 const isIntroPlaying = ref(false)
 const thinkStarted = ref(false)
 const fadeIntervals = new Map<HTMLAudioElement, number>()
+const badAnswerFadeTimeoutId = ref<number | null>(null)
+const expiredQuestionId = ref<number | null>(null)
 
 const cancelFade = (audio: HTMLAudioElement) => {
   const intervalId = fadeIntervals.get(audio)
@@ -261,6 +267,11 @@ const stopAllAudio = () => {
   void stopThinkAudio()
   void fadeOutAudio(questionStartAudio, { resetTime: true })
   void fadeOutAudio(goodAnswerAudio, { resetTime: true })
+  void fadeOutAudio(badAnswerAudio, { resetTime: true })
+  if (badAnswerFadeTimeoutId.value) {
+    window.clearTimeout(badAnswerFadeTimeoutId.value)
+    badAnswerFadeTimeoutId.value = null
+  }
 }
 
 const startThinkAudio = () => {
@@ -295,11 +306,56 @@ const handleGoodAnswer = async () => {
   goodAnswerAudio.play().catch(() => {})
 }
 
+const scheduleBadAnswerFade = () => {
+  if (badAnswerFadeTimeoutId.value) {
+    window.clearTimeout(badAnswerFadeTimeoutId.value)
+    badAnswerFadeTimeoutId.value = null
+  }
+
+  const fadeDurationMs = 2000
+  const durationMs = Number.isFinite(badAnswerAudio.duration) ? badAnswerAudio.duration * 1000 : 0
+
+  if (!durationMs || durationMs <= fadeDurationMs) {
+    void fadeOutAudio(badAnswerAudio, { resetTime: true })
+    return
+  }
+
+  badAnswerFadeTimeoutId.value = window.setTimeout(() => {
+    void fadeOutAudio(badAnswerAudio, { resetTime: true })
+  }, durationMs - fadeDurationMs)
+}
+
+const playBadAnswer = () => {
+  if (!sfxEnabled.value) return
+
+  cancelFade(badAnswerAudio)
+  badAnswerAudio.pause()
+  badAnswerAudio.currentTime = 0
+  badAnswerAudio.volume = 1
+
+  if (badAnswerAudio.readyState >= 1) {
+    scheduleBadAnswerFade()
+  } else {
+    badAnswerAudio.onloadedmetadata = () => {
+      badAnswerAudio.onloadedmetadata = null
+      scheduleBadAnswerFade()
+    }
+  }
+
+  badAnswerAudio.play().catch(() => {})
+}
+
 watch(
   () => activeQuestion.value?.id ?? null,
   async (questionId) => {
     void stopThinkAudio()
     showQuestionContent.value = false
+    expiredQuestionId.value = null
+    cancelFade(badAnswerAudio)
+    if (badAnswerFadeTimeoutId.value) {
+      window.clearTimeout(badAnswerFadeTimeoutId.value)
+      badAnswerFadeTimeoutId.value = null
+    }
 
     if (!questionId || !activeQuestion.value) {
       isIntroPlaying.value = false
@@ -350,6 +406,7 @@ watch(
       void fadeOutAudio(thinkAudio)
       void fadeOutAudio(questionStartAudio, { resetTime: true })
       void fadeOutAudio(goodAnswerAudio, { resetTime: true })
+      void fadeOutAudio(badAnswerAudio, { resetTime: true })
       if (isIntroPlaying.value) {
         skipIntro()
         isIntroPlaying.value = false
@@ -366,6 +423,28 @@ watch(
 watch(showQuestionContent, () => {
   syncThinkAudio()
 })
+
+watch(
+  () => timerRemainingMs.value,
+  (remaining) => {
+    if (
+      remaining == null ||
+      remaining > 0 ||
+      !activeQuestion.value ||
+      !showQuestionContent.value ||
+      isTimerPaused.value ||
+      winnerSeat.value != null
+    ) {
+      return
+    }
+
+    if (expiredQuestionId.value === activeQuestion.value.id) return
+    expiredQuestionId.value = activeQuestion.value.id
+
+    void stopThinkAudio()
+    playBadAnswer()
+  }
+)
 </script>
 
 <style scoped>
