@@ -1,0 +1,110 @@
+[
+  {
+    "category": "Budapest & Óbuda",
+    "point": 100,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Budapest & Óbuda",
+    "point": 200,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Budapest & Óbuda",
+    "point": 300,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Egyetemi élet",
+    "point": 100,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Egyetemi élet",
+    "point": 200,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Egyetemi élet",
+    "point": 300,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Magyar mindennapok",
+    "point": 100,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Magyar mindennapok",
+    "point": 200,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Magyar mindennapok",
+    "point": 300,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OE",
+    "answerC": "OE",
+    "answerD": "OE",
+    "correctAnswer": "",
+    "image": null,
+    "isVisible": true
+  }
+]
