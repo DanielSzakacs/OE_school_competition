@@ -89,6 +89,7 @@ const thinkStarted = ref(false)
 const fadeIntervals = new Map<HTMLAudioElement, number>()
 const badAnswerFadeTimeoutId = ref<number | null>(null)
 const expiredQuestionId = ref<number | null>(null)
+const revealedQuestionId = ref<number | null>(null)
 
 const cancelFade = (audio: HTMLAudioElement) => {
   const intervalId = fadeIntervals.get(audio)
@@ -147,6 +148,7 @@ onMounted(() => {
     nowMs.value = Date.now()
   }, 200)
   socket.on('sfx:goodAnswer', handleGoodAnswer)
+  socket.on('sfx:badAnswer', handleBadAnswer)
 })
 
 onUnmounted(() => {
@@ -155,6 +157,7 @@ onUnmounted(() => {
   }
   stopAllAudio()
   socket.off('sfx:goodAnswer', handleGoodAnswer)
+  socket.off('sfx:badAnswer', handleBadAnswer)
 })
 
 const activeQuestion = computed(() => game.state?.activeQuestion ?? null)
@@ -306,6 +309,15 @@ const handleGoodAnswer = async () => {
   goodAnswerAudio.play().catch(() => {})
 }
 
+const handleBadAnswer = async () => {
+  if (activeQuestion.value && expiredQuestionId.value === activeQuestion.value.id) return
+  if (activeQuestion.value) {
+    expiredQuestionId.value = activeQuestion.value.id
+  }
+  await stopThinkAudio()
+  playBadAnswer()
+}
+
 const scheduleBadAnswerFade = () => {
   if (badAnswerFadeTimeoutId.value) {
     window.clearTimeout(badAnswerFadeTimeoutId.value)
@@ -351,6 +363,7 @@ watch(
     void stopThinkAudio()
     showQuestionContent.value = false
     expiredQuestionId.value = null
+    revealedQuestionId.value = null
     cancelFade(badAnswerAudio)
     if (badAnswerFadeTimeoutId.value) {
       window.clearTimeout(badAnswerFadeTimeoutId.value)
@@ -420,8 +433,12 @@ watch(
   }
 )
 
-watch(showQuestionContent, () => {
+watch(showQuestionContent, (visible) => {
   syncThinkAudio()
+  if (!visible || !activeQuestion.value) return
+  if (revealedQuestionId.value === activeQuestion.value.id) return
+  socket.emit('question:reveal', { questionId: activeQuestion.value.id })
+  revealedQuestionId.value = activeQuestion.value.id
 })
 
 watch(

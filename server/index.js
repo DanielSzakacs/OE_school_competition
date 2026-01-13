@@ -37,6 +37,7 @@ const runtime = {
   timerRemainingMs: null,
   timerPaused: false,
   sfxEnabled: true,
+  waitingForRevealQuestionId: null,
 };
 
 const resetTimer = () => {
@@ -76,6 +77,7 @@ const resetQuestionState = () => {
   runtime.buzzOpen = false;
   runtime.buzzWinnerSeat = null;
   runtime.disabledBuzzSeats = new Set();
+  runtime.waitingForRevealQuestionId = null;
   resetTimer();
 };
 
@@ -143,6 +145,9 @@ async function emitState(ioInstance) {
 
 async function handleQuestionTimeout() {
   if (!runtime.activeQuestionId) return;
+  if (runtime.sfxEnabled) {
+    io.to(ROOM_CODE).emit("sfx:badAnswer");
+  }
   await prisma.question.update({
     where: { id: runtime.activeQuestionId },
     data: { isVisible: false },
@@ -185,11 +190,42 @@ io.on("connection", (socket) => {
     });
     if (!question || !question.isVisible) return;
 
+    const [totalCount, visibleCount] = await Promise.all([
+      prisma.question.count(),
+      prisma.question.count({ where: { isVisible: true } }),
+    ]);
+    const needsIntro =
+      totalCount > 0 &&
+      (visibleCount === totalCount || visibleCount === 1) &&
+      runtime.sfxEnabled;
+
     runtime.activeQuestionId = questionId;
     runtime.buzzOpen = true;
     runtime.buzzWinnerSeat = null;
     runtime.disabledBuzzSeats = new Set();
-    startTimer();
+    runtime.waitingForRevealQuestionId = needsIntro ? questionId : null;
+    if (needsIntro) {
+      runtime.timerRemainingMs = QUESTION_DURATION_MS;
+      runtime.timerEndsAt = null;
+      runtime.timerPaused = true;
+    } else {
+      startTimer();
+    }
+
+    await emitState(io);
+  });
+
+  socket.on("question:reveal", async ({ questionId }) => {
+    if (socket.data.role !== "screen") return;
+    if (runtime.activeQuestionId !== questionId) return;
+    if (runtime.waitingForRevealQuestionId !== questionId) return;
+
+    runtime.waitingForRevealQuestionId = null;
+    if (runtime.timerPaused) {
+      resumeTimer();
+    } else if (runtime.timerEndsAt == null) {
+      startTimer();
+    }
 
     await emitState(io);
   });
@@ -251,6 +287,9 @@ io.on("connection", (socket) => {
 
     const remainingMs = getTimerRemainingMs();
     if (remainingSeats.length === 0 || (remainingMs != null && remainingMs <= 0)) {
+      if (remainingMs != null && remainingMs <= 0 && runtime.sfxEnabled) {
+        io.to(ROOM_CODE).emit("sfx:badAnswer");
+      }
       await prisma.question.update({
         where: { id: question.id },
         data: { isVisible: false },
