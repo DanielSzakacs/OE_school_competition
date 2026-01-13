@@ -5,6 +5,9 @@
     <div v-if="activeQuestion" style="margin: 12px 0">
       <h2>{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
       <p style="font-size: 20px">{{ activeQuestion.question }}</p>
+      <p v-if="isTestMode" style="margin-top: 8px; opacity: 0.85">
+        Teszt mód aktív: minden válasz helyesnek számít.
+      </p>
 
       <ul style="list-style: none; padding: 0; font-size: 18px">
         <li v-if="activeQuestion.answerA"><strong>A.</strong> {{ activeQuestion.answerA }}</li>
@@ -83,6 +86,21 @@
 
     <div style="margin-top: 16px">
       <h3>Admin</h3>
+      <p>Aktív mód: {{ modeLabel }}</p>
+      <button
+        class="host-button host-button--secondary"
+        :disabled="isTestMode"
+        @click="enableTestMode"
+      >
+        Teszt kérdések bekapcsolása
+      </button>
+      <button
+        class="host-button host-button--secondary"
+        :disabled="!isTestMode"
+        @click="enableMainMode"
+      >
+        Eredeti játék visszaállítása
+      </button>
       <button class="host-button host-button--secondary" @click="resetGame">
         Pontok nullázása és kérdések visszaállítása
       </button>
@@ -133,6 +151,14 @@ const seedGame = () => {
   game.seedGame()
 }
 
+const enableTestMode = () => {
+  game.useTestQuestions()
+}
+
+const enableMainMode = () => {
+  game.useMainQuestions()
+}
+
 const playersList = computed(() => {
   return (game.state?.players ?? []).slice().sort((a, b) => a.seat - b.seat)
 })
@@ -140,6 +166,8 @@ const playersList = computed(() => {
 const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 
 const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
+const isTestMode = computed(() => game.state?.runtime?.questionSet === 'test')
+const modeLabel = computed(() => (isTestMode.value ? 'Teszt kérdések' : 'Eredeti játék'))
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
