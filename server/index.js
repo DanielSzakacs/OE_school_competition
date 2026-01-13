@@ -3,8 +3,6 @@ import http from "http";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { exec as execCallback } from "child_process";
-import { promisify } from "util";
 import { Server } from "socket.io";
 import { prisma } from "./prismaClient.js";
 
@@ -23,9 +21,12 @@ const io = new Server(server, {
 });
 
 const ROOM_CODE = "ROOM1";
-const exec = promisify(execCallback);
 const QUESTION_DURATION_MS = 30_000;
 const TIMER_TICK_MS = 250;
+const QUESTION_SETS = {
+  main: "questions.json",
+  test: "test_questions.json",
+};
 
 const runtime = {
   activeQuestionId: null,
@@ -37,6 +38,7 @@ const runtime = {
   timerRemainingMs: null,
   timerPaused: false,
   sfxEnabled: true,
+  questionSet: "main",
   waitingForRevealQuestionId: null,
 };
 
@@ -81,6 +83,35 @@ const resetQuestionState = () => {
   resetTimer();
 };
 
+const loadQuestionsFromFile = async (fileName) => {
+  const questionsPath = path.resolve(__dirname, "prisma", fileName);
+  const payload = await fs.promises.readFile(questionsPath, {
+    encoding: "utf-8",
+  });
+  return JSON.parse(payload);
+};
+
+const seedQuestions = async (questionSet) => {
+  const fileName = QUESTION_SETS[questionSet] ?? QUESTION_SETS.main;
+  const questions = await loadQuestionsFromFile(fileName);
+
+  await prisma.$transaction([
+    prisma.attempt.deleteMany(),
+    prisma.question.deleteMany(),
+    prisma.question.createMany({ data: questions }),
+    prisma.player.updateMany({ data: { score: 0 } }),
+  ]);
+};
+
+const switchQuestionSet = async (questionSet) => {
+  if (runtime.questionSet === questionSet) return;
+
+  await seedQuestions(questionSet);
+  runtime.questionSet = questionSet;
+  resetQuestionState();
+  await emitState(io);
+};
+
 async function buildPublicState() {
   const [players, questions] = await Promise.all([
     prisma.player.findMany({
@@ -120,6 +151,7 @@ async function buildPublicState() {
       timerRemainingMs: getTimerRemainingMs(),
       timerPaused: runtime.timerPaused,
       sfxEnabled: runtime.sfxEnabled,
+      questionSet: runtime.questionSet,
     },
     activeQuestion,
   };
@@ -252,19 +284,24 @@ io.on("connection", (socket) => {
     });
     if (!question) return;
 
+    const isTestMode = runtime.questionSet === "test";
+    const resolvedCorrect = isTestMode ? true : !!isCorrect;
+
     await prisma.attempt.create({
       data: {
         questionId: question.id,
         playerSeat: runtime.buzzWinnerSeat,
-        isCorrect: !!isCorrect,
+        isCorrect: resolvedCorrect,
       },
     });
 
-    if (isCorrect) {
-      await prisma.player.update({
-        where: { seat: runtime.buzzWinnerSeat },
-        data: { score: { increment: question.point } },
-      });
+    if (resolvedCorrect) {
+      if (!isTestMode) {
+        await prisma.player.update({
+          where: { seat: runtime.buzzWinnerSeat },
+          data: { score: { increment: question.point } },
+        });
+      }
       await prisma.question.update({
         where: { id: question.id },
         data: { isVisible: false },
@@ -324,17 +361,20 @@ io.on("connection", (socket) => {
   socket.on("game:seed", async () => {
     if (socket.data.role !== "host") return;
 
-    const seedPath = path.resolve(__dirname, "prisma", "seed.js");
-
-    try {
-      await exec(`node "${seedPath}"`, { cwd: __dirname });
-    } catch (error) {
-      console.error("Seed failed:", error);
-    }
-
+    await seedQuestions(runtime.questionSet);
     resetQuestionState();
 
     await emitState(io);
+  });
+
+  socket.on("game:useTestQuestions", async () => {
+    if (socket.data.role !== "host") return;
+    await switchQuestionSet("test");
+  });
+
+  socket.on("game:useMainQuestions", async () => {
+    if (socket.data.role !== "host") return;
+    await switchQuestionSet("main");
   });
 
   socket.on("sfx:toggle", async ({ enabled }) => {
