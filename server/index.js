@@ -122,6 +122,7 @@ async function buildPublicState() {
       timerPaused: runtime.timerPaused,
       sfxEnabled: runtime.sfxEnabled,
       screenCoverEnabled: runtime.screenCoverEnabled,
+      waitingForRevealQuestionId: runtime.waitingForRevealQuestionId,
     },
     activeQuestion,
   };
