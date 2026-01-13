@@ -307,7 +307,9 @@ io.on("connection", (socket) => {
         data: { isVisible: false },
       });
       resetQuestionState();
-      io.to(ROOM_CODE).emit("sfx:goodAnswer");
+      if (runtime.sfxEnabled) {
+        io.to(ROOM_CODE).emit("sfx:goodAnswer");
+      }
       await emitState(io);
       return;
     }
