@@ -33,6 +33,7 @@ export interface RuntimeState {
   timerPaused: boolean
   sfxEnabled: boolean
   screenCoverEnabled: boolean
+  waitingForRevealQuestionId: number | null
 }
 
 export interface GameState {

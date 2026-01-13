@@ -284,6 +284,14 @@ const stopThinkAudio = () => {
   return fadeOutAudio(thinkAudio, { resetTime: true })
 }
 
+const stopThinkAudioImmediately = () => {
+  thinkStarted.value = false
+  cancelFade(thinkAudio)
+  thinkAudio.pause()
+  thinkAudio.currentTime = 0
+  thinkAudio.volume = 1
+}
+
 const stopAllAudio = () => {
   void stopThinkAudio()
   void fadeOutAudio(questionStartAudio, { resetTime: true })
@@ -317,7 +325,8 @@ const syncThinkAudio = () => {
 }
 
 const handleGoodAnswer = async () => {
-  await stopThinkAudio()
+  stopThinkAudioImmediately()
+  void fadeOutAudio(questionStartAudio, { resetTime: true })
   if (!sfxEnabled.value) return
 
   cancelFade(goodAnswerAudio)
