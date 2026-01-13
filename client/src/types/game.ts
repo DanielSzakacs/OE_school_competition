@@ -32,6 +32,7 @@ export interface RuntimeState {
   timerRemainingMs: number | null
   timerPaused: boolean
   sfxEnabled: boolean
+  questionSet: 'main' | 'test'
 }
 
 export interface GameState {
@@ -48,6 +49,8 @@ export interface ClientToServerEvents {
   'answer:resolve': (payload: { isCorrect: boolean }) => void
   'game:reset': () => void
   'game:seed': () => void
+  'game:useTestQuestions': () => void
+  'game:useMainQuestions': () => void
   'sfx:toggle': (payload: { enabled: boolean }) => void
   'question:reveal': (payload: { questionId: number }) => void
 }
