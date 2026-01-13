@@ -37,6 +37,7 @@ const runtime = {
   timerRemainingMs: null,
   timerPaused: false,
   sfxEnabled: true,
+  screenCoverEnabled: false,
   waitingForRevealQuestionId: null,
 };
 
@@ -120,6 +121,7 @@ async function buildPublicState() {
       timerRemainingMs: getTimerRemainingMs(),
       timerPaused: runtime.timerPaused,
       sfxEnabled: runtime.sfxEnabled,
+      screenCoverEnabled: runtime.screenCoverEnabled,
     },
     activeQuestion,
   };
@@ -341,6 +343,13 @@ io.on("connection", (socket) => {
     if (socket.data.role !== "host") return;
 
     runtime.sfxEnabled = !!enabled;
+    await emitState(io);
+  });
+
+  socket.on("screen:cover", async ({ enabled }) => {
+    if (socket.data.role !== "host") return;
+
+    runtime.screenCoverEnabled = !!enabled;
     await emitState(io);
   });
 

@@ -1,58 +1,75 @@
 <template>
   <div class="screen-view">
-    <teleport to="#app-header">
+    <teleport v-if="!isScreenCovered" to="#app-header">
       <div v-if="timerSeconds != null" class="screen-timer">{{ timerSeconds }}</div>
     </teleport>
-    <div v-if="activeQuestion && showQuestionContent" class="screen-center active-question">
-      <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
-      <p class="active-question__text">{{ activeQuestion.question }}</p>
-      <div v-if="winnerName" class="active-question__answerer-box">
-        <p class="active-question__answerer">Valaszol: {{ winnerName }}</p>
-      </div>
-
-      <ul class="active-question__answers">
-        <li v-if="hasAnswer(activeQuestion.answerA)">
-          <strong>A.</strong> {{ activeQuestion.answerA }}
-        </li>
-        <li v-if="hasAnswer(activeQuestion.answerB)">
-          <strong>B.</strong> {{ activeQuestion.answerB }}
-        </li>
-        <li v-if="hasAnswer(activeQuestion.answerC)">
-          <strong>C.</strong> {{ activeQuestion.answerC }}
-        </li>
-        <li v-if="hasAnswer(activeQuestion.answerD)">
-          <strong>D.</strong> {{ activeQuestion.answerD }}
-        </li>
-      </ul>
-
-      <div v-if="activeQuestion.image" class="active-question__image">
-        <img :src="activeQuestion.image" alt="Kérdés kép" />
+    <div v-if="isScreenCovered" class="screen-cover">
+      <div class="screen-cover__logos">
+        <img
+          src="@/assets/oe_logo.png"
+          alt="OE logo"
+          class="screen-cover__logo screen-cover__logo--oe"
+        />
+        <img
+          src="@/assets/business.png"
+          alt="Business logo"
+          class="screen-cover__logo screen-cover__logo--business"
+        />
       </div>
     </div>
 
-    <div v-else-if="activeQuestion" class="screen-center screen-waiting">
-      <p>Figyelem, új kérdés érkezik...</p>
-    </div>
+    <template v-else>
+      <div v-if="activeQuestion && showQuestionContent" class="screen-center active-question">
+        <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
+        <p class="active-question__text">{{ activeQuestion.question }}</p>
+        <div v-if="winnerName" class="active-question__answerer-box">
+          <p class="active-question__answerer">Valaszol: {{ winnerName }}</p>
+        </div>
 
-    <div v-else class="screen-center">
-      <div class="question-board">
-        <div
-          class="question-board__column"
-          v-for="(questions, category) in groupedQuestions"
-          :key="category"
-        >
-          <h3 class="question-board__category">{{ category }}</h3>
+        <ul class="active-question__answers">
+          <li v-if="hasAnswer(activeQuestion.answerA)">
+            <strong>A.</strong> {{ activeQuestion.answerA }}
+          </li>
+          <li v-if="hasAnswer(activeQuestion.answerB)">
+            <strong>B.</strong> {{ activeQuestion.answerB }}
+          </li>
+          <li v-if="hasAnswer(activeQuestion.answerC)">
+            <strong>C.</strong> {{ activeQuestion.answerC }}
+          </li>
+          <li v-if="hasAnswer(activeQuestion.answerD)">
+            <strong>D.</strong> {{ activeQuestion.answerD }}
+          </li>
+        </ul>
+
+        <div v-if="activeQuestion.image" class="active-question__image">
+          <img :src="activeQuestion.image" alt="Kérdés kép" />
+        </div>
+      </div>
+
+      <div v-else-if="activeQuestion" class="screen-center screen-waiting">
+        <p>Figyelem, új kérdés érkezik...</p>
+      </div>
+
+      <div v-else class="screen-center">
+        <div class="question-board">
           <div
-            v-for="question in questions"
-            :key="question.id"
-            class="question-board__point"
-            :class="{ 'question-board__point--disabled': !question.isVisible }"
+            class="question-board__column"
+            v-for="(questions, category) in groupedQuestions"
+            :key="category"
           >
-            {{ question.point }}
+            <h3 class="question-board__category">{{ category }}</h3>
+            <div
+              v-for="question in questions"
+              :key="question.id"
+              class="question-board__point"
+              :class="{ 'question-board__point--disabled': !question.isVisible }"
+            >
+              {{ question.point }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -168,6 +185,7 @@ const playersList = computed(() => {
 const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 const isTimerPaused = computed(() => game.state?.runtime?.timerPaused ?? false)
 const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
+const isScreenCovered = computed(() => game.state?.runtime?.screenCoverEnabled ?? false)
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
@@ -473,6 +491,40 @@ watch(
   padding: 24px;
   color: #f5f7ff;
   position: relative;
+}
+
+.screen-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #162039 0%, #162039 100%);
+  padding: clamp(24px, 4vw, 64px);
+}
+
+.screen-cover__logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(24px, 4vw, 64px);
+  width: min(92vw, 1600px);
+}
+
+.screen-cover__logo {
+  height: auto;
+  max-height: min(55vh, 520px);
+  max-width: 45vw;
+}
+
+.screen-cover__logo--oe {
+  width: clamp(220px, 32vw, 520px);
+  margin-bottom: 4%;
+}
+
+.screen-cover__logo--business {
+  width: clamp(200px, 30vw, 480px);
 }
 
 .screen-center {
