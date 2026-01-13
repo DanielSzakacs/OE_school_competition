@@ -58,5 +58,8 @@ export const useGameStore = defineStore('game', {
     toggleSfx(enabled: boolean) {
       socket.emit('sfx:toggle', { enabled })
     },
+    toggleScreenCover(enabled: boolean) {
+      socket.emit('screen:cover', { enabled })
+    },
   },
 })

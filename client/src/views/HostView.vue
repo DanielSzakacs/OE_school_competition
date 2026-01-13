@@ -81,6 +81,16 @@
       </div>
     </div>
 
+    <div class="host-screen-cover">
+      <div>
+        <h3>Kivetítő takarás</h3>
+        <p>{{ screenCoverEnabled ? 'Bekapcsolva' : 'Kikapcsolva' }}</p>
+      </div>
+      <button class="host-button" @click="toggleScreenCover">
+        {{ screenCoverEnabled ? 'Takarás kikapcsolása' : 'Takarás bekapcsolása' }}
+      </button>
+    </div>
+
     <div style="margin-top: 16px">
       <h3>Admin</h3>
       <button class="host-button host-button--secondary" @click="resetGame">
@@ -140,6 +150,7 @@ const playersList = computed(() => {
 const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 
 const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
+const screenCoverEnabled = computed(() => game.state?.runtime?.screenCoverEnabled ?? false)
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
@@ -161,6 +172,10 @@ const hasBuzzWinner = computed(() => winnerSeat.value != null)
 const onToggleSfx = (event) => {
   const target = event.target
   game.toggleSfx(target?.checked ?? false)
+}
+
+const toggleScreenCover = () => {
+  game.toggleScreenCover(!screenCoverEnabled.value)
 }
 </script>
 
@@ -229,6 +244,24 @@ const onToggleSfx = (event) => {
 }
 
 .host-audio-toggle__label p {
+  margin: 2px 0 0;
+  opacity: 0.85;
+}
+
+.host-screen-cover {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.host-screen-cover h3 {
+  margin: 0;
+}
+
+.host-screen-cover p {
   margin: 2px 0 0;
   opacity: 0.85;
 }

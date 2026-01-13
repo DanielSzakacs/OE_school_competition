@@ -32,6 +32,7 @@ export interface RuntimeState {
   timerRemainingMs: number | null
   timerPaused: boolean
   sfxEnabled: boolean
+  screenCoverEnabled: boolean
 }
 
 export interface GameState {
@@ -49,6 +50,7 @@ export interface ClientToServerEvents {
   'game:reset': () => void
   'game:seed': () => void
   'sfx:toggle': (payload: { enabled: boolean }) => void
+  'screen:cover': (payload: { enabled: boolean }) => void
   'question:reveal': (payload: { questionId: number }) => void
 }
 
