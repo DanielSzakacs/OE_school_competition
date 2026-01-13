@@ -49,10 +49,12 @@ export interface ClientToServerEvents {
   'game:reset': () => void
   'game:seed': () => void
   'sfx:toggle': (payload: { enabled: boolean }) => void
+  'question:reveal': (payload: { questionId: number }) => void
 }
 
 export interface ServerToClientEvents {
   'state:update': (state: GameState) => void
   'host:activeQuestion': (question: ActiveQuestion | null) => void
   'sfx:goodAnswer': () => void
+  'sfx:badAnswer': () => void
 }
