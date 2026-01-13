@@ -296,10 +296,12 @@ io.on("connection", (socket) => {
     });
 
     if (resolvedCorrect) {
-      await prisma.player.update({
-        where: { seat: runtime.buzzWinnerSeat },
-        data: { score: { increment: question.point } },
-      });
+      if (!isTestMode) {
+        await prisma.player.update({
+          where: { seat: runtime.buzzWinnerSeat },
+          data: { score: { increment: question.point } },
+        });
+      }
       await prisma.question.update({
         where: { id: question.id },
         data: { isVisible: false },
