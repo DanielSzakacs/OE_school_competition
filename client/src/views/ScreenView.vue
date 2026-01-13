@@ -300,7 +300,6 @@ const syncThinkAudio = () => {
 
 const handleGoodAnswer = async () => {
   await stopThinkAudio()
-  if (!sfxEnabled.value) return
 
   cancelFade(goodAnswerAudio)
   goodAnswerAudio.pause()
@@ -338,8 +337,6 @@ const scheduleBadAnswerFade = () => {
 }
 
 const playBadAnswer = () => {
-  if (!sfxEnabled.value) return
-
   cancelFade(badAnswerAudio)
   badAnswerAudio.pause()
   badAnswerAudio.currentTime = 0
