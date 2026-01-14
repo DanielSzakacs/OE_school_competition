@@ -121,7 +121,7 @@ const cancelFade = (audio: HTMLAudioElement) => {
 
 const fadeOutAudio = (
   audio: HTMLAudioElement,
-  { resetTime = false }: { resetTime?: boolean } = {}
+  { resetTime = false }: { resetTime?: boolean } = {},
 ) => {
   cancelFade(audio)
 
@@ -188,9 +188,7 @@ const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 const isTimerPaused = computed(() => game.state?.runtime?.timerPaused ?? false)
 const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
 const isScreenCovered = computed(() => game.state?.runtime?.screenCoverEnabled ?? false)
-const trialQuestionsVisible = computed(
-  () => game.state?.runtime?.trialQuestionsVisible ?? true
-)
+const trialQuestionsVisible = computed(() => game.state?.runtime?.trialQuestionsVisible ?? true)
 
 const formatPointLabel = (point: number) => (point === 0 ? 'proba' : `${point} pont`)
 const formatPointValue = (point: number) => (point === 0 ? 'proba' : point)
@@ -221,11 +219,11 @@ const timerSeconds = computed(() => {
 })
 
 const availableQuestions = computed(() =>
-  (game.state?.questions ?? []).filter((q) => trialQuestionsVisible.value || q.point !== 0)
+  (game.state?.questions ?? []).filter((q) => trialQuestionsVisible.value || q.point !== 0),
 )
 
 const visibleQuestionCount = computed(
-  () => availableQuestions.value.filter((q) => q.isVisible).length
+  () => availableQuestions.value.filter((q) => q.isVisible).length,
 )
 
 const totalQuestionCount = computed(() => availableQuestions.value.length)
@@ -233,10 +231,7 @@ const totalQuestionCount = computed(() => availableQuestions.value.length)
 const isFirstOrLastQuestion = computed(() => {
   if (!activeQuestion.value) return false
   if (totalQuestionCount.value === 0) return false
-  return (
-    visibleQuestionCount.value === totalQuestionCount.value ||
-    visibleQuestionCount.value === 1
-  )
+  return visibleQuestionCount.value === totalQuestionCount.value || visibleQuestionCount.value === 1
 })
 
 const hasAnswer = (value: string | null | undefined) => !!value?.trim()
@@ -326,7 +321,12 @@ const syncThinkAudio = () => {
     return
   }
 
-  if (!sfxEnabled.value || isIntroPlaying.value || isTimerPaused.value || winnerSeat.value != null) {
+  if (
+    !sfxEnabled.value ||
+    isIntroPlaying.value ||
+    isTimerPaused.value ||
+    winnerSeat.value != null
+  ) {
     void fadeOutAudio(thinkAudio)
     return
   }
@@ -424,7 +424,7 @@ watch(
     showQuestionContent.value = true
     startThinkAudio()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -436,7 +436,7 @@ watch(
     } else {
       syncThinkAudio()
     }
-  }
+  },
 )
 
 watch(
@@ -448,29 +448,26 @@ watch(
     } else {
       syncThinkAudio()
     }
-  }
+  },
 )
 
-watch(
-  sfxEnabled,
-  (enabled) => {
-    if (!enabled) {
-      void fadeOutAudio(thinkAudio)
-      void fadeOutAudio(questionStartAudio, { resetTime: true })
-      void fadeOutAudio(goodAnswerAudio, { resetTime: true })
-      void fadeOutAudio(badAnswerAudio, { resetTime: true })
-      if (isIntroPlaying.value) {
-        skipIntro()
-        isIntroPlaying.value = false
-        showQuestionContent.value = true
-      }
-      return
+watch(sfxEnabled, (enabled) => {
+  if (!enabled) {
+    void fadeOutAudio(thinkAudio)
+    void fadeOutAudio(questionStartAudio, { resetTime: true })
+    void fadeOutAudio(goodAnswerAudio, { resetTime: true })
+    void fadeOutAudio(badAnswerAudio, { resetTime: true })
+    if (isIntroPlaying.value) {
+      skipIntro()
+      isIntroPlaying.value = false
+      showQuestionContent.value = true
     }
-
-    if (isIntroPlaying.value) return
-    syncThinkAudio()
+    return
   }
-)
+
+  if (isIntroPlaying.value) return
+  syncThinkAudio()
+})
 
 watch(showQuestionContent, (visible) => {
   syncThinkAudio()
@@ -499,7 +496,7 @@ watch(
 
     void stopThinkAudio()
     playBadAnswer()
-  }
+  },
 )
 </script>
 
@@ -545,7 +542,7 @@ watch(
 }
 
 .screen-cover__logo--business {
-  width: clamp(200px, 30vw, 480px);
+  width: clamp(200px, 30vw, 251px);
 }
 
 .screen-center {
