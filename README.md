@@ -14,7 +14,7 @@ Egy online, Jeopardy-hoz hasonló játék egy egyetemi versenyre, ahol:
 
 ### Frontend
 - **Vue 3 + Vite**  
-  Gyors fejlesztés, egyszerű SPA felépítés és routing (/host, /screen, /player/:seat).
+  Gyors fejlesztés, egyszerű SPA felépítés és routing (/host, /screen, /player/:token).
 
 - **Pinia**  
   Egyszerű és átlátható state management a kliens oldalon.
@@ -115,7 +115,7 @@ Host: `http://localhost:5173/host`
 
 Screen: `http://localhost:5173/screen`
 
-Player: `http://localhost:5173/player/1` … `http://localhost:5173/player/5`
+Player: `http://localhost:5173/player/<token>` (a tokenek a `client/src/config/playerLinks.ts` fájlban találhatóak)
 ### Reset
 ```
 cd server

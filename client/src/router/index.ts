@@ -8,7 +8,7 @@ export default createRouter({
   routes: [
     { path: '/host', component: HostView },
     { path: '/screen', component: ScreenView },
-    { path: '/player/:seat', component: PlayerView },
+    { path: '/player/:token', component: PlayerView },
     { path: '/', redirect: '/screen' },
   ],
 })
