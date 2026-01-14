@@ -1,7 +1,7 @@
 <template>
   <div class="player-view">
     <p v-if="!seatValid" class="player-error">
-      Hibás player seat. Csak 1 és 5 között engedélyezett.
+      Hibás player link. Csak az előre kiosztott tokenek engedélyezettek.
     </p>
 
     <div v-else class="player-content">
@@ -57,11 +57,15 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
+import { playerLinkToSeat } from '@/config/playerLinks'
 
 const route = useRoute()
 const game = useGameStore()
 
-const seat = computed(() => Number(route.params.seat))
+const seat = computed(() => {
+  const token = String(route.params.token ?? '')
+  return playerLinkToSeat[token] ?? null
+})
 const seatValid = computed(() => Number.isInteger(seat.value) && seat.value >= 1 && seat.value <= 5)
 
 onMounted(() => {
