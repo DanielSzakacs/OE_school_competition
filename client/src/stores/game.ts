@@ -61,5 +61,8 @@ export const useGameStore = defineStore('game', {
     toggleScreenCover(enabled: boolean) {
       socket.emit('screen:cover', { enabled })
     },
+    toggleTrialQuestions(enabled: boolean) {
+      socket.emit('trial:toggle', { enabled })
+    },
   },
 })

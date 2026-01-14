@@ -38,6 +38,7 @@ const runtime = {
   timerPaused: false,
   sfxEnabled: true,
   screenCoverEnabled: false,
+  trialQuestionsVisible: true,
   waitingForRevealQuestionId: null,
 };
 
@@ -122,6 +123,7 @@ async function buildPublicState() {
       timerPaused: runtime.timerPaused,
       sfxEnabled: runtime.sfxEnabled,
       screenCoverEnabled: runtime.screenCoverEnabled,
+      trialQuestionsVisible: runtime.trialQuestionsVisible,
       waitingForRevealQuestionId: runtime.waitingForRevealQuestionId,
     },
     activeQuestion,
@@ -192,6 +194,7 @@ io.on("connection", (socket) => {
       where: { id: questionId },
     });
     if (!question || !question.isVisible) return;
+    if (question.point === 0 && !runtime.trialQuestionsVisible) return;
 
     const [totalCount, visibleCount] = await Promise.all([
       prisma.question.count(),
@@ -351,6 +354,13 @@ io.on("connection", (socket) => {
     if (socket.data.role !== "host") return;
 
     runtime.screenCoverEnabled = !!enabled;
+    await emitState(io);
+  });
+
+  socket.on("trial:toggle", async ({ enabled }) => {
+    if (socket.data.role !== "host") return;
+
+    runtime.trialQuestionsVisible = !!enabled;
     await emitState(io);
   });
 
