@@ -1,6 +1,18 @@
 [
   {
     "category": "Marketing",
+    "point": 0,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OBudai",
+    "answerC": "OB",
+    "answerD": "O-Budai",
+    "correctAnswer": "A",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Marketing",
     "point": 100,
     "question": "A marketingkommunikáció folyamatában a külső zajt a versenytársak egyidejű kommunikációja és magatartása okozza.",
     "answerA": "Igaz",
@@ -60,6 +72,18 @@
     "isVisible": true
   },
 
+  {
+    "category": "Vezetés",
+    "point": 0,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OBudai",
+    "answerC": "OB",
+    "answerD": "O-Budai",
+    "correctAnswer": "A",
+    "image": null,
+    "isVisible": true
+  },
   {
     "category": "Vezetés",
     "point": 100,
@@ -123,6 +147,18 @@
 
   {
     "category": "Pénzügy",
+    "point": 0,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OBudai",
+    "answerC": "OB",
+    "answerD": "O-Budai",
+    "correctAnswer": "A",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Pénzügy",
     "point": 100,
     "question": "Igaz-e, hogy a számviteli alapok szerint a profitot a bevételek és a költségek különbözeteként számítjuk ki (profit = bevétel - költségek)?",
     "answerA": "Hamis",
@@ -184,6 +220,18 @@
 
   {
     "category": "Jog",
+    "point": 0,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OBudai",
+    "answerC": "OB",
+    "answerD": "O-Budai",
+    "correctAnswer": "A",
+    "image": null,
+    "isVisible": true
+  },
+  {
+    "category": "Jog",
     "point": 100,
     "question": "Igaz-e az az állítás, hogy kiskorú személy nem lehet gazdasági társaság korlátlanul felelős tagja?",
     "answerA": "Igaz",
@@ -243,6 +291,18 @@
     "isVisible": true
   },
 
+  {
+    "category": "Projekt",
+    "point": 0,
+    "question": "Melyik a legjobb egyetem?",
+    "answerA": "OE",
+    "answerB": "OBudai",
+    "answerC": "OB",
+    "answerD": "O-Budai",
+    "correctAnswer": "A",
+    "image": null,
+    "isVisible": true
+  },
   {
     "category": "Projekt",
     "point": 100,

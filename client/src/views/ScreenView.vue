@@ -20,7 +20,9 @@
 
     <template v-else>
       <div v-if="activeQuestion && showQuestionContent" class="screen-center active-question">
-        <h2 class="active-title">{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
+        <h2 class="active-title">
+          {{ activeQuestion.category }} — {{ formatPointLabel(activeQuestion.point) }}
+        </h2>
         <p class="active-question__text">{{ activeQuestion.question }}</p>
         <div v-if="winnerName" class="active-question__answerer-box">
           <p class="active-question__answerer">Valaszol: {{ winnerName }}</p>
@@ -64,7 +66,7 @@
               class="question-board__point"
               :class="{ 'question-board__point--disabled': !question.isVisible }"
             >
-              {{ question.point }}
+              {{ formatPointValue(question.point) }}
             </div>
           </div>
         </div>
@@ -186,6 +188,12 @@ const winnerSeat = computed(() => game.state?.runtime?.buzzWinnerSeat ?? null)
 const isTimerPaused = computed(() => game.state?.runtime?.timerPaused ?? false)
 const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
 const isScreenCovered = computed(() => game.state?.runtime?.screenCoverEnabled ?? false)
+const trialQuestionsVisible = computed(
+  () => game.state?.runtime?.trialQuestionsVisible ?? true
+)
+
+const formatPointLabel = (point: number) => (point === 0 ? 'proba' : `${point} pont`)
+const formatPointValue = (point: number) => (point === 0 ? 'proba' : point)
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
@@ -212,11 +220,15 @@ const timerSeconds = computed(() => {
   return Math.ceil(remaining / 1000)
 })
 
-const visibleQuestionCount = computed(
-  () => (game.state?.questions ?? []).filter((q) => q.isVisible).length
+const availableQuestions = computed(() =>
+  (game.state?.questions ?? []).filter((q) => trialQuestionsVisible.value || q.point !== 0)
 )
 
-const totalQuestionCount = computed(() => game.state?.questions?.length ?? 0)
+const visibleQuestionCount = computed(
+  () => availableQuestions.value.filter((q) => q.isVisible).length
+)
+
+const totalQuestionCount = computed(() => availableQuestions.value.length)
 
 const isFirstOrLastQuestion = computed(() => {
   if (!activeQuestion.value) return false
@@ -231,7 +243,7 @@ const hasAnswer = (value: string | null | undefined) => !!value?.trim()
 
 const groupedQuestions = computed<Record<string, QuestionSummary[]>>(() => {
   const groups: Record<string, QuestionSummary[]> = {}
-  const questions = game.state?.questions ?? []
+  const questions = availableQuestions.value
 
   questions.forEach((q) => {
     const categoryGroup = groups[q.category] ?? []

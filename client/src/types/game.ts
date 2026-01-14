@@ -33,6 +33,7 @@ export interface RuntimeState {
   timerPaused: boolean
   sfxEnabled: boolean
   screenCoverEnabled: boolean
+  trialQuestionsVisible: boolean
   waitingForRevealQuestionId: number | null
 }
 
@@ -52,6 +53,7 @@ export interface ClientToServerEvents {
   'game:seed': () => void
   'sfx:toggle': (payload: { enabled: boolean }) => void
   'screen:cover': (payload: { enabled: boolean }) => void
+  'trial:toggle': (payload: { enabled: boolean }) => void
   'question:reveal': (payload: { questionId: number }) => void
 }
 

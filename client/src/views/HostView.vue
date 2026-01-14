@@ -3,7 +3,7 @@
     <h1>HOST</h1>
 
     <div v-if="activeQuestion" style="margin: 12px 0">
-      <h2>{{ activeQuestion.category }} — {{ activeQuestion.point }} pont</h2>
+      <h2>{{ activeQuestion.category }} — {{ formatPointLabel(activeQuestion.point) }}</h2>
       <p style="font-size: 20px">{{ activeQuestion.question }}</p>
 
       <ul style="list-style: none; padding: 0; font-size: 18px">
@@ -53,7 +53,7 @@
             :disabled="!!activeQuestion || !question.isVisible"
             @click="select(question.id)"
           >
-            {{ question.point }}
+            {{ formatPointValue(question.point) }}
           </button>
         </div>
       </div>
@@ -91,6 +91,16 @@
       </button>
     </div>
 
+    <div class="host-screen-cover">
+      <div>
+        <h3>Próba kérdés láthatóság</h3>
+        <p>{{ trialQuestionsVisible ? 'Bekapcsolva' : 'Kikapcsolva' }}</p>
+      </div>
+      <button class="host-button" @click="toggleTrialQuestions">
+        {{ trialQuestionsVisible ? 'Próba kérdés elrejtése' : 'Próba kérdés megjelenítése' }}
+      </button>
+    </div>
+
     <div style="margin-top: 16px">
       <h3>Admin</h3>
       <button class="host-button host-button--secondary" @click="resetGame">
@@ -111,9 +121,15 @@ onMounted(() => {
   game.join('host')
 })
 
+const trialQuestionsVisible = computed(
+  () => game.state?.runtime?.trialQuestionsVisible ?? true
+)
+
 const groupedQuestions = computed(() => {
   const groups = {}
-  const questions = game.state?.questions ?? []
+  const questions = (game.state?.questions ?? []).filter(
+    (q) => trialQuestionsVisible.value || q.point !== 0
+  )
 
   questions.forEach((q) => {
     if (!groups[q.category]) {
@@ -126,6 +142,9 @@ const groupedQuestions = computed(() => {
 })
 
 const activeQuestion = computed(() => game.hostQuestion ?? game.state?.activeQuestion ?? null)
+
+const formatPointLabel = (point) => (point === 0 ? 'próba' : `${point} pont`)
+const formatPointValue = (point) => (point === 0 ? 'próba' : point)
 
 const select = (questionId) => {
   game.selectQuestion(questionId)
@@ -176,6 +195,10 @@ const onToggleSfx = (event) => {
 
 const toggleScreenCover = () => {
   game.toggleScreenCover(!screenCoverEnabled.value)
+}
+
+const toggleTrialQuestions = () => {
+  game.toggleTrialQuestions(!trialQuestionsVisible.value)
 }
 </script>
 
