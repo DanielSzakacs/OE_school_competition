@@ -34,7 +34,7 @@
           <div class="player-question__placeholder">Figyelem, új kérdés érkezik...</div>
         </template>
         <template v-else-if="winnerName">
-          <div class="player-question__answerer">A valaszolo: {{ winnerName }}</div>
+          <div class="player-question__answerer">A válaszoló: {{ winnerName }}</div>
         </template>
         <template v-else>
           <div class="player-question__placeholder">Nincs aktív kérdés.</div>
