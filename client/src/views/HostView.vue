@@ -3,7 +3,7 @@
     <h1>HOST</h1>
 
     <div v-if="winnerName" class="host-buzz-winner">
-      <p class="host-buzz-winner__label">Legutóbbi nyertes</p>
+      <p class="host-buzz-winner__label">Aki válaszol</p>
       <h2 class="host-buzz-winner__name">{{ winnerName }}</h2>
     </div>
 
@@ -66,9 +66,9 @@
 
     <hr />
 
-    <h2>Buzz állapot: {{ buzzStatus }}</h2>
+    <!-- <h2>Buzz állapot: {{ buzzStatus }}</h2>
     <p v-if="winnerName">Van nyertes</p>
-    <p v-else>Nincs nyertes</p>
+    <p v-else>Nincs nyertes</p> -->
 
     <h3 style="margin-top: 16px">Pontok</h3>
     <ul>
@@ -126,14 +126,12 @@ onMounted(() => {
   game.join('host')
 })
 
-const trialQuestionsVisible = computed(
-  () => game.state?.runtime?.trialQuestionsVisible ?? true
-)
+const trialQuestionsVisible = computed(() => game.state?.runtime?.trialQuestionsVisible ?? true)
 
 const groupedQuestions = computed(() => {
   const groups = {}
   const questions = (game.state?.questions ?? []).filter(
-    (q) => trialQuestionsVisible.value || q.point !== 0
+    (q) => trialQuestionsVisible.value || q.point !== 0,
   )
 
   questions.forEach((q) => {
