@@ -2,6 +2,11 @@
   <div class="host-view">
     <h1>HOST</h1>
 
+    <div v-if="winnerName" class="host-buzz-winner">
+      <p class="host-buzz-winner__label">Legutóbbi nyertes</p>
+      <h2 class="host-buzz-winner__name">{{ winnerName }}</h2>
+    </div>
+
     <div v-if="activeQuestion" style="margin: 12px 0">
       <h2>{{ activeQuestion.category }} — {{ formatPointLabel(activeQuestion.point) }}</h2>
       <p style="font-size: 20px">{{ activeQuestion.question }}</p>
@@ -13,7 +18,7 @@
         <li v-if="activeQuestion.answerD"><strong>D.</strong> {{ activeQuestion.answerD }}</li>
       </ul>
 
-      <p style="margin-top: 8px">
+      <p class="host-correct-answer">
         Helyes válasz: <strong>{{ activeQuestion.correctAnswer }}</strong>
       </p>
 
@@ -62,7 +67,7 @@
     <hr />
 
     <h2>Buzz állapot: {{ buzzStatus }}</h2>
-    <p v-if="winnerName">Nyertes seat: {{ winnerName }}</p>
+    <p v-if="winnerName">Van nyertes</p>
     <p v-else>Nincs nyertes</p>
 
     <h3 style="margin-top: 16px">Pontok</h3>
@@ -220,6 +225,33 @@ const toggleTrialQuestions = () => {
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.host-buzz-winner {
+  margin: 12px 0 20px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(17, 27, 50, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.host-buzz-winner__label {
+  margin: 0 0 6px;
+  opacity: 0.8;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.host-buzz-winner__name {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.host-correct-answer {
+  margin-top: 10px;
+  font-size: 22px;
+}
+
 .host-button {
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(30, 48, 90, 0.9);
@@ -275,7 +307,7 @@ const toggleTrialQuestions = () => {
   margin-top: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   flex-wrap: wrap;
 }
