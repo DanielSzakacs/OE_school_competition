@@ -30,6 +30,9 @@
             <img :src="activeQuestion.image" alt="Kérdés kép" />
           </div>
         </template>
+        <template v-else-if="activeQuestion && winnerName && !isWinner">
+          <div class="player-question__answerer">Most a(z) {{ winnerName }} csapat válaszol.</div>
+        </template>
         <template v-else-if="activeQuestion">
           <div class="player-question__placeholder">Figyelem, új kérdés érkezik...</div>
         </template>
