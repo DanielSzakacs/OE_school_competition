@@ -25,7 +25,7 @@
         </h2>
         <p class="active-question__text">{{ activeQuestion.question }}</p>
         <div v-if="winnerName" class="active-question__answerer-box">
-          <p class="active-question__answerer">Valaszol: {{ winnerName }}</p>
+          <p class="active-question__answerer">Válaszol: {{ winnerName }}</p>
         </div>
 
         <ul class="active-question__answers">
@@ -190,8 +190,8 @@ const sfxEnabled = computed(() => game.state?.runtime?.sfxEnabled ?? true)
 const isScreenCovered = computed(() => game.state?.runtime?.screenCoverEnabled ?? false)
 const trialQuestionsVisible = computed(() => game.state?.runtime?.trialQuestionsVisible ?? true)
 
-const formatPointLabel = (point: number) => (point === 0 ? 'proba' : `${point} pont`)
-const formatPointValue = (point: number) => (point === 0 ? 'proba' : point)
+const formatPointLabel = (point: number) => (point === 0 ? 'próba' : `${point} pont`)
+const formatPointValue = (point: number) => (point === 0 ? 'próba' : point)
 
 const winnerName = computed(() => {
   const seat = winnerSeat.value
