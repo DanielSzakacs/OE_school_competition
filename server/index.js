@@ -24,7 +24,7 @@ const io = new Server(server, {
 
 const ROOM_CODE = "ROOM1";
 const exec = promisify(execCallback);
-const QUESTION_DURATION_MS = 30_000;
+const QUESTION_DURATION_MS = 60_000;
 const TIMER_TICK_MS = 250;
 
 const runtime = {
